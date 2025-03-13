@@ -45,10 +45,12 @@ export interface Song {
   id: string;
   title: string;
   producer: string;
-  coverImage: string;
-  audioUrl: string;
-  releaseDate: string;
+  cover_image: string;
+  audio_url: string;
+  release_date: string;
   duration: number; // in seconds
+  created_at: string;
+  updated_at: string;
 }
 
 export interface BlogPost {
@@ -57,10 +59,23 @@ export interface BlogPost {
   slug: string;
   content: string;
   excerpt: string;
-  coverImage: string | null;
-  publishedDate: string;
+  cover_image: string | null;
+  published_date: string;
   tags: string[];
-  isPublished: boolean;
+  is_published: boolean;
+  created_at: string;
+  updated_at: string;
+  author_id: string;
+}
+
+export interface Profile {
+  id: string;
+  first_name: string | null;
+  last_name: string | null;
+  avatar_url: string | null;
+  role: string;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface ApiError {
