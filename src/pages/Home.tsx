@@ -1,6 +1,7 @@
 
-import { ArrowRight, User, Briefcase, GraduationCap, Award } from "lucide-react";
+import { ArrowRight, User, Briefcase, GraduationCap, Award, Music, Download, BookOpen } from "lucide-react";
 import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 export default function Home() {
   return (
@@ -16,13 +17,13 @@ export default function Home() {
             </div>
             
             <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold tracking-tight animate-slideUp animate-delay-100 text-balance">
-              I'm <span className="text-primary">John Doe</span>,<br /> 
+              I'm <span className="text-primary">Thymo Bruce</span>,<br /> 
               Full Stack Developer
             </h1>
             
             <p className="text-lg text-muted-foreground max-w-2xl animate-slideUp animate-delay-200 text-balance">
               I specialize in building modern, responsive web applications with attention to detail
-              and focus on user experience.
+              and focus on user experience. Based in The Netherlands.
             </p>
             
             <div className="flex flex-col sm:flex-row gap-4 mt-4 animate-slideUp animate-delay-300">
@@ -52,20 +53,23 @@ export default function Home() {
             <div className="space-y-6">
               <h2 className="text-3xl font-bold tracking-tight">About Me</h2>
               <p className="text-muted-foreground">
-                I'm a dedicated full-stack developer with a passion for creating clean, efficient, and user-friendly applications. 
-                With over 5 years of experience, I've worked on various projects ranging from e-commerce platforms to complex dashboards.
+                I'm a dedicated full-stack developer from The Netherlands with a passion for creating clean, efficient, and user-friendly applications. 
+                Besides programming, I'm also passionate about music production.
               </p>
               <p className="text-muted-foreground">
-                My approach to development focuses on writing maintainable code that solves real problems. 
+                I'm fluent in Dutch and English, and my approach to development focuses on writing maintainable code that solves real problems. 
                 I believe in continuous learning and staying updated with the latest technologies and best practices.
               </p>
-              <Link
-                to="/contact"
-                className="inline-flex items-center text-primary hover:underline font-medium"
-              >
-                Get in touch
-                <ArrowRight size={16} className="ml-2" />
-              </Link>
+              <div className="flex space-x-4">
+                <a 
+                  href="/resume.pdf" 
+                  className="inline-flex items-center text-primary hover:underline font-medium"
+                  download
+                >
+                  Download Resume
+                  <Download size={16} className="ml-2" />
+                </a>
+              </div>
             </div>
             
             <div className="grid grid-cols-2 gap-4">
@@ -82,15 +86,15 @@ export default function Home() {
               </div>
               
               <div className="bg-background p-6 rounded-lg shadow-sm">
-                <GraduationCap size={24} className="text-primary mb-4" />
-                <h3 className="font-medium mb-2">Continuous Learning</h3>
-                <p className="text-sm text-muted-foreground">Always expanding knowledge and skills</p>
+                <Music size={24} className="text-primary mb-4" />
+                <h3 className="font-medium mb-2">Music Producer</h3>
+                <p className="text-sm text-muted-foreground">Creating electronic music in my free time</p>
               </div>
               
               <div className="bg-background p-6 rounded-lg shadow-sm">
-                <Award size={24} className="text-primary mb-4" />
-                <h3 className="font-medium mb-2">Quality First</h3>
-                <p className="text-sm text-muted-foreground">Committed to excellence in every project</p>
+                <BookOpen size={24} className="text-primary mb-4" />
+                <h3 className="font-medium mb-2">Content Creator</h3>
+                <p className="text-sm text-muted-foreground">Sharing knowledge through my blog</p>
               </div>
             </div>
           </div>
@@ -114,6 +118,88 @@ export default function Home() {
                 <span className="font-medium">{skill}</span>
               </div>
             ))}
+          </div>
+        </div>
+      </section>
+      
+      {/* Featured Sections */}
+      <section className="py-20 bg-secondary/30">
+        <div className="container mx-auto px-4 md:px-6">
+          <div className="text-center mb-16">
+            <h2 className="text-3xl font-bold tracking-tight mb-4">Featured</h2>
+            <p className="text-muted-foreground max-w-2xl mx-auto">
+              Check out my music production and latest blog posts.
+            </p>
+          </div>
+          
+          <div className="grid md:grid-cols-2 gap-12">
+            <div className="bg-background p-8 rounded-lg shadow-sm">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-2xl font-semibold">Music Production</h3>
+                <Link to="/music" className="text-primary hover:underline inline-flex items-center">
+                  View all
+                  <ArrowRight size={16} className="ml-2" />
+                </Link>
+              </div>
+              
+              <div className="space-y-4">
+                <div className="flex items-center p-4 border border-border rounded-lg hover:bg-secondary/20 transition-colors">
+                  <div className="w-12 h-12 bg-secondary/50 rounded-md flex items-center justify-center mr-4">
+                    <Music size={20} className="text-primary" />
+                  </div>
+                  <div>
+                    <h4 className="font-medium">Midnight Dreams</h4>
+                    <p className="text-sm text-muted-foreground">Electronic • 2023</p>
+                  </div>
+                </div>
+                
+                <div className="flex items-center p-4 border border-border rounded-lg hover:bg-secondary/20 transition-colors">
+                  <div className="w-12 h-12 bg-secondary/50 rounded-md flex items-center justify-center mr-4">
+                    <Music size={20} className="text-primary" />
+                  </div>
+                  <div>
+                    <h4 className="font-medium">Coastal Waves</h4>
+                    <p className="text-sm text-muted-foreground">Ambient • 2023</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+            
+            <div className="bg-background p-8 rounded-lg shadow-sm">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-2xl font-semibold">Latest Blog Posts</h3>
+                <Link to="/blog" className="text-primary hover:underline inline-flex items-center">
+                  View all
+                  <ArrowRight size={16} className="ml-2" />
+                </Link>
+              </div>
+              
+              <div className="space-y-4">
+                <Link to="/blog/journey-into-full-stack-development" className="block p-4 border border-border rounded-lg hover:bg-secondary/20 transition-colors">
+                  <h4 className="font-medium">My Journey into Full-Stack Development</h4>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    A reflection on my path to becoming a Full-Stack Developer and the lessons learned along the way.
+                  </p>
+                  <div className="flex items-center mt-2">
+                    <span className="text-xs text-muted-foreground">November 15, 2023</span>
+                    <span className="mx-2 text-muted-foreground">•</span>
+                    <span className="text-xs bg-secondary/50 px-2 py-0.5 rounded-full">Career</span>
+                  </div>
+                </Link>
+                
+                <Link to="/blog/intersection-music-production-coding" className="block p-4 border border-border rounded-lg hover:bg-secondary/20 transition-colors">
+                  <h4 className="font-medium">The Intersection of Music Production and Coding</h4>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    How my background in music production has influenced my approach to software development.
+                  </p>
+                  <div className="flex items-center mt-2">
+                    <span className="text-xs text-muted-foreground">January 5, 2024</span>
+                    <span className="mx-2 text-muted-foreground">•</span>
+                    <span className="text-xs bg-secondary/50 px-2 py-0.5 rounded-full">Music</span>
+                  </div>
+                </Link>
+              </div>
+            </div>
           </div>
         </div>
       </section>

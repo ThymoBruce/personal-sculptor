@@ -41,6 +41,28 @@ export interface Link {
   is_active: boolean;
 }
 
+export interface Song {
+  id: string;
+  title: string;
+  producer: string;
+  coverImage: string;
+  audioUrl: string;
+  releaseDate: string;
+  duration: number; // in seconds
+}
+
+export interface BlogPost {
+  id: string;
+  title: string;
+  slug: string;
+  content: string;
+  excerpt: string;
+  coverImage: string | null;
+  publishedDate: string;
+  tags: string[];
+  isPublished: boolean;
+}
+
 export interface ApiError {
   message: string;
   status: number;

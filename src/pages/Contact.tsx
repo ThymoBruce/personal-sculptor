@@ -28,8 +28,8 @@ export default function Contact() {
                   </div>
                   <div className="ml-4">
                     <h3 className="font-medium">Email</h3>
-                    <a href="mailto:hello@example.com" className="text-muted-foreground hover:text-primary transition-colors">
-                      hello@example.com
+                    <a href="mailto:info@thymobruce.nl" className="text-muted-foreground hover:text-primary transition-colors">
+                      info@thymobruce.nl
                     </a>
                   </div>
                 </div>
@@ -40,9 +40,9 @@ export default function Contact() {
                   </div>
                   <div className="ml-4">
                     <h3 className="font-medium">Phone</h3>
-                    <a href="tel:+11234567890" className="text-muted-foreground hover:text-primary transition-colors">
-                      +1 (123) 456-7890
-                    </a>
+                    <p className="text-muted-foreground">
+                      Available upon request
+                    </p>
                   </div>
                 </div>
                 
@@ -53,18 +53,35 @@ export default function Contact() {
                   <div className="ml-4">
                     <h3 className="font-medium">Location</h3>
                     <p className="text-muted-foreground">
-                      San Francisco, California
+                      The Netherlands
                     </p>
                   </div>
                 </div>
               </div>
               
               <div className="mt-12">
-                <h2 className="text-2xl font-semibold mb-6">Office Hours</h2>
-                <p className="text-muted-foreground">
-                  Monday - Friday: 9:00 AM - 5:00 PM<br />
-                  Saturday - Sunday: Closed
-                </p>
+                <h2 className="text-2xl font-semibold mb-6">Languages</h2>
+                <div className="space-y-4">
+                  <div>
+                    <div className="flex justify-between mb-1">
+                      <span className="font-medium">Dutch</span>
+                      <span className="text-muted-foreground text-sm">Native</span>
+                    </div>
+                    <div className="h-2 w-full bg-secondary rounded-full">
+                      <div className="h-2 bg-primary rounded-full" style={{ width: '100%' }}></div>
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <div className="flex justify-between mb-1">
+                      <span className="font-medium">English</span>
+                      <span className="text-muted-foreground text-sm">Fluent</span>
+                    </div>
+                    <div className="h-2 w-full bg-secondary rounded-full">
+                      <div className="h-2 bg-primary rounded-full" style={{ width: '95%' }}></div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
             

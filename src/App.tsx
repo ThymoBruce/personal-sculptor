@@ -12,6 +12,9 @@ import Home from "./pages/Home";
 import Projects from "./pages/Projects";
 import Contact from "./pages/Contact";
 import Links from "./pages/Links";
+import Music from "./pages/Music";
+import Blog from "./pages/Blog";
+import BlogPost from "./pages/BlogPost";
 import Dashboard from "./pages/admin/Dashboard";
 import ProjectsManager from "./pages/admin/ProjectsManager";
 import LinksManager from "./pages/admin/LinksManager";
@@ -33,6 +36,9 @@ const App = () => (
               <Route path="/projects" element={<Projects />} />
               <Route path="/contact" element={<Contact />} />
               <Route path="/links" element={<Links />} />
+              <Route path="/music" element={<Music />} />
+              <Route path="/blog" element={<Blog />} />
+              <Route path="/blog/:slug" element={<BlogPost />} />
               <Route path="/admin" element={<Dashboard />} />
               <Route path="/admin/projects" element={<ProjectsManager />} />
               <Route path="/admin/links" element={<LinksManager />} />

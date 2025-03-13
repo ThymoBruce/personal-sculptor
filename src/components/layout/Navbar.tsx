@@ -12,6 +12,8 @@ export default function Navbar() {
   const navItems = [
     { name: "Home", path: "/" },
     { name: "Projects", path: "/projects" },
+    { name: "Music", path: "/music" },
+    { name: "Blog", path: "/blog" },
     { name: "Contact", path: "/contact" },
     { name: "Links", path: "/links" },
   ];
@@ -45,8 +47,8 @@ export default function Navbar() {
           to="/" 
           className="text-xl font-medium tracking-tight hover:opacity-80 transition-opacity"
         >
-          <span className="sr-only">Personal Website</span>
-          <span className="inline-block">Portfolio.</span>
+          <span className="sr-only">Thymo Bruce</span>
+          <span className="inline-block">Thymo Bruce</span>
         </Link>
 
         {/* Desktop Navigation */}
