@@ -1,9 +1,10 @@
 
 import { useState, useEffect } from "react";
-import { getLinks } from "@/lib/api";
+import { getLinksFromSupabase } from "@/lib/api-supabase";
 import { Link } from "@/lib/types";
 import LinkCard from "@/components/links/LinkCard";
-import { ArrowUpRight } from "lucide-react";
+import { ArrowUpRight, RefreshCw } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
 export default function Links() {
   const [isLoading, setIsLoading] = useState(true);
@@ -14,13 +15,15 @@ export default function Links() {
     const fetchLinks = async () => {
       setIsLoading(true);
       try {
-        const response = await getLinks();
+        const response = await getLinksFromSupabase();
         
         if (response.error) {
           throw new Error(response.error.message);
         }
         
-        setLinks(response.data || []);
+        // Filter only active links for public display
+        const activeLinks = (response.data || []).filter(link => link.is_active);
+        setLinks(activeLinks);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An unknown error occurred');
       } finally {
@@ -57,12 +60,18 @@ export default function Links() {
         ) : error ? (
           <div className="text-center py-12">
             <p className="text-destructive mb-4">{error}</p>
-            <button 
+            <Button 
               onClick={() => window.location.reload()}
-              className="px-4 py-2 bg-primary text-primary-foreground rounded-md"
+              variant="outline"
+              className="flex items-center"
             >
+              <RefreshCw size={16} className="mr-2" />
               Try Again
-            </button>
+            </Button>
+          </div>
+        ) : links.length === 0 ? (
+          <div className="max-w-xl mx-auto text-center py-12">
+            <p className="text-muted-foreground mb-4">No links available at the moment.</p>
           </div>
         ) : (
           <div className="max-w-3xl mx-auto grid sm:grid-cols-2 gap-6">
@@ -83,15 +92,15 @@ export default function Links() {
           <p className="text-muted-foreground mb-8">
             Check out my blog where I share insights, tutorials, and thoughts on technology and development.
           </p>
-          <a 
-            href="https://example.com/blog" 
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center px-6 py-3 font-medium bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
-          >
-            Visit My Blog
-            <ArrowUpRight size={16} className="ml-2" />
-          </a>
+          <Button asChild>
+            <Link 
+              to="/blog"
+              className="inline-flex items-center"
+            >
+              Visit My Blog
+              <ArrowUpRight size={16} className="ml-2" />
+            </Link>
+          </Button>
         </div>
       </div>
     </div>

@@ -1,20 +1,37 @@
 
 import { useState, useEffect } from "react";
-import { getLinks } from "@/lib/api";
+import { getLinksFromSupabase, createLink, updateLink, deleteLink } from "@/lib/api-supabase";
 import { Link as LinkType } from "@/lib/types";
-import { ArrowLeft, Plus } from "lucide-react";
-import { Link } from "react-router-dom";
+import { ArrowLeft, Plus, AlertTriangle } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Button } from "@/components/ui/button";
+import LinkForm from "@/components/admin/LinkForm";
+import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 export default function LinksManager() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [links, setLinks] = useState<LinkType[]>([]);
+  const [isAddingLink, setIsAddingLink] = useState(false);
+  const [editingLink, setEditingLink] = useState<LinkType | null>(null);
+  const { toast } = useToast();
+  const navigate = useNavigate();
+  const { user, loading } = useAuth();
   
+  // Check if user is authenticated
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate("/auth/login");
+    }
+  }, [user, loading, navigate]);
+  
+  // Fetch links
   useEffect(() => {
     const fetchLinks = async () => {
       setIsLoading(true);
       try {
-        const response = await getLinks();
+        const response = await getLinksFromSupabase();
         
         if (response.error) {
           throw new Error(response.error.message);
@@ -22,14 +39,99 @@ export default function LinksManager() {
         
         setLinks(response.data || []);
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'An unknown error occurred');
+        const errorMessage = err instanceof Error ? err.message : 'An unknown error occurred';
+        setError(errorMessage);
+        toast({
+          variant: "destructive",
+          title: "Failed to load links",
+          description: errorMessage,
+        });
       } finally {
         setIsLoading(false);
       }
     };
     
-    fetchLinks();
-  }, []);
+    if (user) {
+      fetchLinks();
+    }
+  }, [user, toast]);
+
+  const handleAddLink = async (linkData: Omit<LinkType, "id">) => {
+    try {
+      const response = await createLink(linkData);
+      
+      if (response.error) {
+        throw new Error(response.error.message);
+      }
+      
+      setLinks([...links, response.data!]);
+      setIsAddingLink(false);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to add link';
+      toast({
+        variant: "destructive",
+        title: "Failed to add link",
+        description: errorMessage,
+      });
+    }
+  };
+
+  const handleUpdateLink = async (linkData: Omit<LinkType, "id">) => {
+    if (!editingLink) return;
+    
+    try {
+      const response = await updateLink(editingLink.id, linkData);
+      
+      if (response.error) {
+        throw new Error(response.error.message);
+      }
+      
+      setLinks(links.map(link => 
+        link.id === editingLink.id ? response.data! : link
+      ));
+      setEditingLink(null);
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to update link';
+      toast({
+        variant: "destructive",
+        title: "Failed to update link",
+        description: errorMessage,
+      });
+    }
+  };
+
+  const handleDeleteLink = async (id: string) => {
+    if (!confirm("Are you sure you want to delete this link?")) return;
+    
+    try {
+      const response = await deleteLink(id);
+      
+      if (response.error) {
+        throw new Error(response.error.message);
+      }
+      
+      setLinks(links.filter(link => link.id !== id));
+      toast({
+        title: "Link Deleted",
+        description: "The link has been successfully deleted",
+      });
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to delete link';
+      toast({
+        variant: "destructive",
+        title: "Failed to delete link",
+        description: errorMessage,
+      });
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="h-8 w-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen pt-24 pb-16">
@@ -45,14 +147,31 @@ export default function LinksManager() {
           <p className="text-muted-foreground">
             Add, edit, or remove links from your profile
           </p>
-          <button 
-            className="inline-flex items-center px-4 py-2 bg-primary text-primary-foreground rounded-md hover:bg-primary/90 transition-colors"
-            onClick={() => alert("This would open a form to add a new link in the real implementation.")}
+          <Button 
+            className="inline-flex items-center"
+            onClick={() => {
+              setIsAddingLink(true);
+              setEditingLink(null);
+            }}
+            disabled={isAddingLink || !!editingLink}
           >
             <Plus size={16} className="mr-2" />
             Add Link
-          </button>
+          </Button>
         </div>
+        
+        {(isAddingLink || editingLink) && (
+          <div className="mb-6">
+            <LinkForm
+              initialData={editingLink || undefined}
+              onSubmit={editingLink ? handleUpdateLink : handleAddLink}
+              onCancel={() => {
+                setIsAddingLink(false);
+                setEditingLink(null);
+              }}
+            />
+          </div>
+        )}
         
         {isLoading ? (
           <div className="animate-pulse space-y-4">
@@ -66,13 +185,18 @@ export default function LinksManager() {
           </div>
         ) : error ? (
           <div className="text-center py-12">
+            <AlertTriangle className="h-12 w-12 mx-auto text-destructive mb-4" />
             <p className="text-destructive mb-4">{error}</p>
-            <button 
+            <Button 
               onClick={() => window.location.reload()}
               className="px-4 py-2 bg-primary text-primary-foreground rounded-md"
             >
               Try Again
-            </button>
+            </Button>
+          </div>
+        ) : links.length === 0 ? (
+          <div className="text-center py-12 bg-secondary/20 rounded-lg">
+            <p className="text-muted-foreground mb-4">No links found. Add your first link to get started.</p>
           </div>
         ) : (
           <div className="overflow-x-auto">
@@ -112,18 +236,27 @@ export default function LinksManager() {
                     </td>
                     <td className="py-3 px-4 text-right">
                       <div className="flex justify-end space-x-2">
-                        <button 
-                          className="text-primary hover:text-primary/80 transition-colors"
-                          onClick={() => alert(`This would edit link ${link.id} in the real implementation.`)}
+                        <Button 
+                          variant="outline"
+                          size="sm"
+                          className="text-primary"
+                          onClick={() => {
+                            setEditingLink(link);
+                            setIsAddingLink(false);
+                          }}
+                          disabled={isAddingLink || !!editingLink}
                         >
                           Edit
-                        </button>
-                        <button 
-                          className="text-destructive hover:text-destructive/80 transition-colors"
-                          onClick={() => alert(`This would delete link ${link.id} in the real implementation.`)}
+                        </Button>
+                        <Button 
+                          variant="outline"
+                          size="sm"
+                          className="text-destructive hover:bg-destructive/10"
+                          onClick={() => handleDeleteLink(link.id)}
+                          disabled={isAddingLink || !!editingLink}
                         >
                           Delete
-                        </button>
+                        </Button>
                       </div>
                     </td>
                   </tr>
@@ -136,8 +269,7 @@ export default function LinksManager() {
         <div className="mt-12 p-6 bg-secondary/30 rounded-lg">
           <h2 className="text-lg font-medium mb-4">Note</h2>
           <p className="text-sm text-muted-foreground">
-            This is a demo version of the links manager. In the full implementation, 
-            this would connect to Supabase backend for CRUD operations.
+            Links added here will be displayed on your public links page. Make sure to set the correct order to arrange them as desired.
           </p>
         </div>
       </div>

@@ -15,7 +15,7 @@ export default function LinkCard({ link }: LinkCardProps) {
       rel="noopener noreferrer"
       className="block"
     >
-      <Card className="h-full transition-all" hoverEffect>
+      <Card className="h-full transition-all hover:shadow-md hover:translate-y-[-2px]">
         <CardHeader>
           <div className="flex justify-between items-center">
             <CardTitle className="flex items-center">

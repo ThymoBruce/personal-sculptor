@@ -1,93 +1,90 @@
 
 import ContactForm from "@/components/contact/ContactForm";
-import { Mail, MapPin, Phone } from "lucide-react";
+import ResumeDownload from "@/components/contact/ResumeDownload";
+import { Button } from "@/components/ui/button";
+import { Github, Instagram, Mail } from "lucide-react";
 
 export default function Contact() {
   return (
     <div className="min-h-screen pt-24 pb-16">
       <div className="container mx-auto px-4 md:px-6">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-12">
-            <h1 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4 animate-fadeIn">
-              Get in Touch
-            </h1>
-            <p className="text-muted-foreground max-w-2xl mx-auto animate-slideUp animate-delay-100">
-              Have a project in mind or want to discuss a potential collaboration? 
-              Feel free to reach out and I'll get back to you as soon as possible.
-            </p>
-          </div>
+        <div className="max-w-3xl mx-auto">
+          <h1 className="text-3xl font-bold tracking-tight sm:text-4xl mb-4 animate-fadeIn">
+            Get in Touch
+          </h1>
+          <p className="text-muted-foreground mb-12 animate-slideUp animate-delay-100">
+            I'm always open to new opportunities and collaborations. Feel free to reach out!
+          </p>
           
-          <div className="grid md:grid-cols-2 gap-12">
-            <div className="animate-fadeIn animate-delay-200">
-              <h2 className="text-2xl font-semibold mb-6">Contact Information</h2>
-              
-              <div className="space-y-6">
-                <div className="flex items-start">
-                  <div className="flex-shrink-0 mt-1">
-                    <Mail size={20} className="text-primary" />
-                  </div>
-                  <div className="ml-4">
-                    <h3 className="font-medium">Email</h3>
-                    <a href="mailto:info@thymobruce.nl" className="text-muted-foreground hover:text-primary transition-colors">
-                      info@thymobruce.nl
-                    </a>
-                  </div>
-                </div>
-                
-                <div className="flex items-start">
-                  <div className="flex-shrink-0 mt-1">
-                    <Phone size={20} className="text-primary" />
-                  </div>
-                  <div className="ml-4">
-                    <h3 className="font-medium">Phone</h3>
-                    <p className="text-muted-foreground">
-                      Available upon request
-                    </p>
-                  </div>
-                </div>
-                
-                <div className="flex items-start">
-                  <div className="flex-shrink-0 mt-1">
-                    <MapPin size={20} className="text-primary" />
-                  </div>
-                  <div className="ml-4">
-                    <h3 className="font-medium">Location</h3>
-                    <p className="text-muted-foreground">
-                      The Netherlands
-                    </p>
-                  </div>
-                </div>
-              </div>
-              
-              <div className="mt-12">
-                <h2 className="text-2xl font-semibold mb-6">Languages</h2>
+          <div className="grid md:grid-cols-5 gap-8 md:gap-12">
+            <div className="md:col-span-3">
+              <ContactForm />
+            </div>
+            
+            <div className="md:col-span-2 space-y-6">
+              <div className="bg-card rounded-lg border p-6">
+                <h3 className="text-lg font-medium mb-4">Contact Information</h3>
                 <div className="space-y-4">
-                  <div>
-                    <div className="flex justify-between mb-1">
-                      <span className="font-medium">Dutch</span>
-                      <span className="text-muted-foreground text-sm">Native</span>
-                    </div>
-                    <div className="h-2 w-full bg-secondary rounded-full">
-                      <div className="h-2 bg-primary rounded-full" style={{ width: '100%' }}></div>
+                  <div className="flex items-start">
+                    <Mail className="h-5 w-5 mr-3 mt-0.5 text-muted-foreground" />
+                    <div>
+                      <p className="font-medium">Email</p>
+                      <a 
+                        href="mailto:info@thymobruce.nl" 
+                        className="text-primary hover:underline"
+                      >
+                        info@thymobruce.nl
+                      </a>
                     </div>
                   </div>
                   
-                  <div>
-                    <div className="flex justify-between mb-1">
-                      <span className="font-medium">English</span>
-                      <span className="text-muted-foreground text-sm">Fluent</span>
+                  <div className="flex items-start">
+                    <Github className="h-5 w-5 mr-3 mt-0.5 text-muted-foreground" />
+                    <div>
+                      <p className="font-medium">GitHub</p>
+                      <a 
+                        href="https://github.com/ThymoBruce" 
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary hover:underline"
+                      >
+                        github.com/ThymoBruce
+                      </a>
                     </div>
-                    <div className="h-2 w-full bg-secondary rounded-full">
-                      <div className="h-2 bg-primary rounded-full" style={{ width: '95%' }}></div>
+                  </div>
+                  
+                  <div className="flex items-start">
+                    <Instagram className="h-5 w-5 mr-3 mt-0.5 text-muted-foreground" />
+                    <div>
+                      <p className="font-medium">Instagram</p>
+                      <a 
+                        href="https://instagram.com/thymobruce" 
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-primary hover:underline"
+                      >
+                        instagram.com/thymobruce
+                      </a>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
-            
-            <div className="bg-background border border-border p-6 rounded-lg shadow-sm animate-fadeIn animate-delay-300">
-              <h2 className="text-2xl font-semibold mb-6">Send a Message</h2>
-              <ContactForm />
+              
+              <div className="bg-card rounded-lg border p-6">
+                <h3 className="text-lg font-medium mb-4">Resume</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Download my resume to learn more about my skills and experience
+                </p>
+                <ResumeDownload />
+              </div>
+              
+              <div className="bg-secondary/30 rounded-lg p-6">
+                <h3 className="text-base font-medium mb-2">Location</h3>
+                <p className="text-sm text-muted-foreground">
+                  Based in The Netherlands<br />
+                  Languages: Dutch, English
+                </p>
+              </div>
             </div>
           </div>
         </div>

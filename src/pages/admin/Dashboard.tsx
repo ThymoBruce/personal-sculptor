@@ -1,53 +1,31 @@
 
-import { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import { BarChart3, FileText, Link2 } from "lucide-react";
-import { isAuthenticated } from "@/lib/api";
-import Card, { CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { BarChart3, FileText, Link2, FileUp, LogOut } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/contexts/AuthContext";
+import ResumeUploader from "@/components/admin/ResumeUploader";
 
 export default function Dashboard() {
-  const [isAuthorized, setIsAuthorized] = useState<boolean | null>(null);
+  const { user, loading, logout } = useAuth();
+  const navigate = useNavigate();
   
   useEffect(() => {
-    // Check if user is authenticated
-    const checkAuth = () => {
-      const auth = isAuthenticated();
-      setIsAuthorized(auth);
-    };
-    
-    checkAuth();
-  }, []);
+    if (!loading && !user) {
+      navigate("/auth/login");
+    }
+  }, [user, loading, navigate]);
   
-  if (isAuthorized === null) {
+  const handleLogout = async () => {
+    await logout();
+    navigate("/");
+  };
+  
+  if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="h-8 w-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div>
-      </div>
-    );
-  }
-  
-  if (isAuthorized === false) {
-    return (
-      <div className="min-h-screen pt-24 pb-16">
-        <div className="container mx-auto px-4 md:px-6">
-          <div className="max-w-md mx-auto text-center">
-            <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
-            <p className="text-muted-foreground mb-6">
-              You need to be logged in as an admin to access this page.
-            </p>
-            <div className="p-6 bg-secondary/30 rounded-lg">
-              <p className="mb-4 text-sm">
-                This is a demo version. In the full implementation, this would connect to Supabase Auth.
-              </p>
-              <button 
-                className="px-4 py-2 bg-primary text-primary-foreground rounded-md"
-                onClick={() => alert("This would open a login form in the real implementation.")}
-              >
-                Login
-              </button>
-            </div>
-          </div>
-        </div>
       </div>
     );
   }
@@ -66,12 +44,13 @@ export default function Dashboard() {
           </div>
           
           <div className="mt-4 md:mt-0">
-            <button 
-              className="px-4 py-2 bg-destructive text-destructive-foreground rounded-md"
-              onClick={() => alert("This would log you out in the real implementation.")}
+            <Button 
+              variant="destructive"
+              onClick={handleLogout}
             >
+              <LogOut size={16} className="mr-2" />
               Logout
-            </button>
+            </Button>
           </div>
         </div>
         
@@ -91,13 +70,13 @@ export default function Dashboard() {
           
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
-              <CardTitle className="text-sm font-medium">Total Categories</CardTitle>
-              <BarChart3 size={16} className="text-muted-foreground" />
+              <CardTitle className="text-sm font-medium">Resume</CardTitle>
+              <FileUp size={16} className="text-muted-foreground" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">5</div>
+              <div className="text-sm">Manage your downloadable resume</div>
               <p className="text-xs text-muted-foreground mt-1">
-                1 added this month
+                Last updated: {new Date().toLocaleDateString()}
               </p>
             </CardContent>
           </Card>
@@ -116,9 +95,9 @@ export default function Dashboard() {
           </Card>
         </div>
         
-        <div className="grid md:grid-cols-2 gap-6">
+        <div className="grid md:grid-cols-2 gap-6 mb-8">
           <Link to="/admin/projects">
-            <Card className="h-full hover-lift">
+            <Card className="h-full hover:shadow-md hover:translate-y-[-2px] transition-transform">
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <FileText size={18} className="mr-2" />
@@ -134,7 +113,7 @@ export default function Dashboard() {
           </Link>
           
           <Link to="/admin/links">
-            <Card className="h-full hover-lift">
+            <Card className="h-full hover:shadow-md hover:translate-y-[-2px] transition-transform">
               <CardHeader>
                 <CardTitle className="flex items-center">
                   <Link2 size={18} className="mr-2" />
@@ -150,11 +129,16 @@ export default function Dashboard() {
           </Link>
         </div>
         
-        <div className="mt-12 p-6 bg-secondary/30 rounded-lg">
-          <h2 className="text-lg font-medium mb-4">Note</h2>
+        <div className="mb-12">
+          <ResumeUploader />
+        </div>
+        
+        <div className="p-6 bg-secondary/30 rounded-lg">
+          <h2 className="text-lg font-medium mb-4">Welcome to the Admin Dashboard</h2>
           <p className="text-sm text-muted-foreground">
-            This is a demo version of the admin dashboard. In the full implementation, 
-            this would connect to Supabase backend for authentication and data management.
+            This dashboard allows you to manage your portfolio content, including projects, 
+            links, and your downloadable resume. Use the cards above to navigate to specific 
+            management pages or update your resume directly from this screen.
           </p>
         </div>
       </div>
