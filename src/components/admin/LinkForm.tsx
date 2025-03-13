@@ -19,7 +19,7 @@ export default function LinkForm({ initialData, onSubmit, onCancel }: LinkFormPr
   const [title, setTitle] = useState(initialData?.title || "");
   const [url, setUrl] = useState(initialData?.url || "");
   const [description, setDescription] = useState(initialData?.description || "");
-  const [order, setOrder] = useState(initialData?.order.toString() || "0");
+  const [displayOrder, setDisplayOrder] = useState(initialData?.display_order.toString() || "0");
   const [isActive, setIsActive] = useState(initialData?.is_active ?? true);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
@@ -46,7 +46,7 @@ export default function LinkForm({ initialData, onSubmit, onCancel }: LinkFormPr
         title,
         url,
         description,
-        order: parseInt(order) || 0,
+        display_order: parseInt(displayOrder) || 0,
         is_active: isActive,
       });
       
@@ -114,12 +114,12 @@ export default function LinkForm({ initialData, onSubmit, onCancel }: LinkFormPr
         
         <div className="grid grid-cols-2 gap-4">
           <div className="space-y-2">
-            <Label htmlFor="order">Display Order</Label>
+            <Label htmlFor="display_order">Display Order</Label>
             <Input
-              id="order"
+              id="display_order"
               type="number"
-              value={order}
-              onChange={(e) => setOrder(e.target.value)}
+              value={displayOrder}
+              onChange={(e) => setDisplayOrder(e.target.value)}
               min="0"
             />
           </div>

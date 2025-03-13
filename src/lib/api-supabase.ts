@@ -8,7 +8,7 @@ export async function getLinksFromSupabase(): Promise<ApiResponse<Link[]>> {
     const { data, error } = await supabase
       .from('links')
       .select('*')
-      .order('order');
+      .order('display_order');
     
     if (error) throw error;
     

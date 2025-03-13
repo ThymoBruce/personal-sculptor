@@ -37,7 +37,7 @@ export interface Link {
   title: string;
   url: string;
   description: string | null;
-  order: number;
+  display_order: number;  // Changed from "order" to "display_order" to match our SQL
   is_active: boolean;
 }
 

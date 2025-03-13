@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { getLinksFromSupabase, createLink, updateLink, deleteLink } from "@/lib/api-supabase";
 import { Link as LinkType } from "@/lib/types";
@@ -19,14 +18,12 @@ export default function LinksManager() {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
   
-  // Check if user is authenticated
   useEffect(() => {
     if (!loading && !user) {
       navigate("/auth/login");
     }
   }, [user, loading, navigate]);
   
-  // Fetch links
   useEffect(() => {
     const fetchLinks = async () => {
       setIsLoading(true);
@@ -213,7 +210,7 @@ export default function LinksManager() {
               <tbody>
                 {links.map((link) => (
                   <tr key={link.id} className="border-b hover:bg-secondary/20 transition-colors">
-                    <td className="py-3 px-4">{link.order}</td>
+                    <td className="py-3 px-4">{link.display_order}</td>
                     <td className="py-3 px-4">{link.title}</td>
                     <td className="py-3 px-4 truncate max-w-[200px]">
                       <a 
