@@ -1,5 +1,6 @@
 
 import { useState, useEffect } from "react";
+import { Link as RouterLink } from "react-router-dom";
 import { getLinksFromSupabase } from "@/lib/api-supabase";
 import { Link } from "@/lib/types";
 import LinkCard from "@/components/links/LinkCard";
@@ -93,13 +94,13 @@ export default function Links() {
             Check out my blog where I share insights, tutorials, and thoughts on technology and development.
           </p>
           <Button asChild>
-            <Link 
+            <RouterLink 
               to="/blog"
               className="inline-flex items-center"
             >
               Visit My Blog
               <ArrowUpRight size={16} className="ml-2" />
-            </Link>
+            </RouterLink>
           </Button>
         </div>
       </div>

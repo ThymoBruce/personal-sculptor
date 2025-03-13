@@ -92,7 +92,7 @@ const mockLinks: Link[] = [
     title: 'GitHub',
     url: 'https://github.com/ThymoBruce',
     description: 'Check out my code repositories',
-    order: 1,
+    display_order: 1,
     is_active: true,
   },
   {
@@ -100,7 +100,7 @@ const mockLinks: Link[] = [
     title: 'LinkedIn',
     url: 'https://linkedin.com/in/thymobruce',
     description: 'Professional profile and resume',
-    order: 2,
+    display_order: 2,
     is_active: true,
   },
   {
@@ -108,7 +108,7 @@ const mockLinks: Link[] = [
     title: 'Instagram',
     url: 'https://instagram.com/thymobruce',
     description: 'My music and daily updates',
-    order: 3,
+    display_order: 3,
     is_active: true,
   },
 ];
