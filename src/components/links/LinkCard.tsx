@@ -1,6 +1,6 @@
 
 import { Link as LinkType } from "@/lib/types";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
 import { ExternalLink } from "lucide-react";
 
 interface LinkCardProps {

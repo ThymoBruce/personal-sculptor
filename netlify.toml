@@ -1,0 +1,26 @@
+
+# Netlify configuration file
+
+[build]
+  publish = "dist"
+  command = "npm run build"
+
+# Handle SPA routing by redirecting all requests to index.html
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# Enable HTTPS and security headers
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options = "DENY"
+    X-XSS-Protection = "1; mode=block"
+    X-Content-Type-Options = "nosniff"
+    Referrer-Policy = "no-referrer-when-downgrade"
+    Content-Security-Policy = "default-src 'self' https: data: blob: 'unsafe-inline'"
+
+# Environment variable configuration
+[build.environment]
+  NODE_VERSION = "18"
