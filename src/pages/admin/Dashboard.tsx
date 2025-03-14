@@ -1,8 +1,8 @@
 
 import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { BarChart3, FileText, Link2, FileUp, LogOut } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { BarChart3, FileText, Link2, FileUp, LogOut, Music, Book } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import ResumeUploader from "@/components/admin/ResumeUploader";
@@ -53,8 +53,18 @@ export default function Dashboard() {
             </Button>
           </div>
         </div>
+
+        {/* Moved welcome section to the top */}
+        <div className="p-6 bg-secondary/30 rounded-lg mb-12">
+          <h2 className="text-lg font-medium mb-4">Welcome to the Admin Dashboard</h2>
+          <p className="text-sm text-muted-foreground">
+            This dashboard allows you to manage your portfolio content, including projects, 
+            links, music, blog posts, and your downloadable resume. Use the cards below to navigate to specific 
+            management pages or update your resume directly from this screen.
+          </p>
+        </div>
         
-        <div className="grid md:grid-cols-3 gap-6 mb-12">
+        <div className="grid md:grid-cols-4 gap-6 mb-12">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between pb-2">
               <CardTitle className="text-sm font-medium">Total Projects</CardTitle>
@@ -93,9 +103,22 @@ export default function Dashboard() {
               </p>
             </CardContent>
           </Card>
+
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between pb-2">
+              <CardTitle className="text-sm font-medium">Music Tracks</CardTitle>
+              <Music size={16} className="text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">3</div>
+              <p className="text-xs text-muted-foreground mt-1">
+                1 added this month
+              </p>
+            </CardContent>
+          </Card>
         </div>
         
-        <div className="grid md:grid-cols-2 gap-6 mb-8">
+        <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
           <Link to="/admin/projects">
             <Card className="h-full hover:shadow-md hover:translate-y-[-2px] transition-transform">
               <CardHeader>
@@ -127,19 +150,42 @@ export default function Dashboard() {
               </CardContent>
             </Card>
           </Link>
+
+          <Link to="/admin/music">
+            <Card className="h-full hover:shadow-md hover:translate-y-[-2px] transition-transform">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Music size={18} className="mr-2" />
+                  Manage Music
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground text-sm">
+                  Upload, edit, or delete your music tracks
+                </p>
+              </CardContent>
+            </Card>
+          </Link>
+
+          <Link to="/admin/blog">
+            <Card className="h-full hover:shadow-md hover:translate-y-[-2px] transition-transform">
+              <CardHeader>
+                <CardTitle className="flex items-center">
+                  <Book size={18} className="mr-2" />
+                  Manage Blog
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-muted-foreground text-sm">
+                  Create, edit, or delete your blog posts
+                </p>
+              </CardContent>
+            </Card>
+          </Link>
         </div>
         
         <div className="mb-12">
           <ResumeUploader />
-        </div>
-        
-        <div className="p-6 bg-secondary/30 rounded-lg">
-          <h2 className="text-lg font-medium mb-4">Welcome to the Admin Dashboard</h2>
-          <p className="text-sm text-muted-foreground">
-            This dashboard allows you to manage your portfolio content, including projects, 
-            links, and your downloadable resume. Use the cards above to navigate to specific 
-            management pages or update your resume directly from this screen.
-          </p>
         </div>
       </div>
     </div>

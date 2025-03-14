@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { ArrowLeft, Plus, Trash, Pencil, FileUp, Tag, Check } from "lucide-react";
+import { ArrowLeft, Plus, Trash, Pencil, BookOpen, Eye, EyeOff } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
@@ -9,22 +9,23 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
-  getProjects, 
-  getCategories, 
-  createProject, 
-  updateProject, 
-  deleteProject 
+  getBlogPosts, 
+  createBlogPost, 
+  updateBlogPost, 
+  deleteBlogPost,
+  uploadBlogCover
 } from "@/lib/api-supabase";
-import { Project, Category } from "@/lib/types";
+import { BlogPost } from "@/lib/types";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 
-export default function ProjectsManager() {
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
+export default function BlogManager() {
+  const [posts, setPosts] = useState<BlogPost[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null);
+  const [coverFile, setCoverFile] = useState<File | null>(null);
+  const [coverPreview, setCoverPreview] = useState<string | null>(null);
   const [tags, setTags] = useState<string[]>([]);
   const [tagInput, setTagInput] = useState("");
   const { user, loading } = useAuth();
@@ -32,42 +33,33 @@ export default function ProjectsManager() {
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
-    name: "",
-    description: "",
-    category_id: "",
-    status: "draft" as "draft" | "published",
+    title: "",
+    slug: "",
+    content: "",
+    excerpt: "",
+    is_published: false,
   });
 
   useEffect(() => {
     if (!loading && !user) {
       navigate("/auth/login");
     } else if (!loading) {
-      fetchData();
+      fetchPosts();
     }
   }, [user, loading, navigate]);
 
-  const fetchData = async () => {
+  const fetchPosts = async () => {
     setIsLoading(true);
     try {
-      const [projectsResponse, categoriesResponse] = await Promise.all([
-        getProjects(),
-        getCategories()
-      ]);
-      
-      if (projectsResponse.error) {
-        throw new Error(projectsResponse.error.message);
+      const response = await getBlogPosts();
+      if (response.error) {
+        throw new Error(response.error.message);
       }
-      
-      if (categoriesResponse.error) {
-        throw new Error(categoriesResponse.error.message);
-      }
-      
-      setProjects(projectsResponse.data || []);
-      setCategories(categoriesResponse.data || []);
+      setPosts(response.data || []);
     } catch (error) {
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to fetch data",
+        description: error instanceof Error ? error.message : "Failed to fetch blog posts",
         variant: "destructive",
       });
     } finally {
@@ -75,12 +67,41 @@ export default function ProjectsManager() {
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ 
-      ...prev, 
-      [name]: name === "status" ? (value as "draft" | "published") : value 
-    }));
+    
+    // Auto-generate slug from title if slug field is empty
+    if (name === 'title' && (!formData.slug || formData.slug === generateSlug(formData.title))) {
+      setFormData((prev) => ({ 
+        ...prev, 
+        [name]: value,
+        slug: generateSlug(value) 
+      }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
+  };
+
+  const handleCheckboxChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, checked } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: checked }));
+  };
+
+  const generateSlug = (text: string) => {
+    return text
+      .toLowerCase()
+      .replace(/[^\w\s-]/g, '')
+      .replace(/\s+/g, '-')
+      .replace(/-+/g, '-')
+      .trim();
+  };
+
+  const handleCoverChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setCoverFile(file);
+      setCoverPreview(URL.createObjectURL(file));
+    }
   };
 
   const handleAddTag = () => {
@@ -96,44 +117,49 @@ export default function ProjectsManager() {
 
   const resetForm = () => {
     setFormData({
-      name: "",
-      description: "",
-      category_id: "",
-      status: "draft",
+      title: "",
+      slug: "",
+      content: "",
+      excerpt: "",
+      is_published: false,
     });
+    setCoverFile(null);
+    setCoverPreview(null);
     setTags([]);
     setTagInput("");
-    setSelectedProject(null);
+    setSelectedPost(null);
   };
 
-  const handleEditProject = (project: Project) => {
-    setSelectedProject(project);
+  const handleEditPost = (post: BlogPost) => {
+    setSelectedPost(post);
     setFormData({
-      name: project.name,
-      description: project.description,
-      category_id: project.category_id,
-      status: project.status,
+      title: post.title,
+      slug: post.slug,
+      content: post.content,
+      excerpt: post.excerpt,
+      is_published: post.is_published,
     });
-    setTags(project.tags || []);
+    setCoverPreview(post.cover_image || null);
+    setTags(post.tags || []);
   };
 
-  const handleDeleteProject = async (id: string) => {
-    if (!window.confirm("Are you sure you want to delete this project?")) return;
+  const handleDeletePost = async (id: string) => {
+    if (!window.confirm("Are you sure you want to delete this blog post?")) return;
 
     try {
-      const response = await deleteProject(id);
+      const response = await deleteBlogPost(id);
       if (response.error) throw new Error(response.error.message);
       
       toast({
         title: "Success",
-        description: "Project deleted successfully",
+        description: "Blog post deleted successfully",
       });
       
-      fetchData();
+      fetchPosts();
     } catch (error) {
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to delete project",
+        description: error instanceof Error ? error.message : "Failed to delete blog post",
         variant: "destructive",
       });
     }
@@ -145,52 +171,57 @@ export default function ProjectsManager() {
 
     try {
       // Validate required fields
-      if (!formData.name || !formData.description || !formData.category_id) {
+      if (!formData.title || !formData.slug || !formData.content || !formData.excerpt) {
         throw new Error("Please fill out all required fields");
       }
 
+      let cover_image = selectedPost?.cover_image || null;
+
+      // Upload cover image if provided
+      if (coverFile) {
+        const coverResponse = await uploadBlogCover(coverFile);
+        if (coverResponse.error) throw new Error(coverResponse.error.message);
+        cover_image = coverResponse.data || null;
+      }
+
       const userId = user?.id || "unknown";
-      const projectData = {
-        name: formData.name,
-        description: formData.description,
-        category_id: formData.category_id,
-        status: formData.status,
+      const postData = {
+        title: formData.title,
+        slug: formData.slug,
+        content: formData.content,
+        excerpt: formData.excerpt,
+        cover_image,
+        is_published: formData.is_published,
         tags,
-        author_id: userId,
-        created_by: userId,
-        modified_by: userId
+        published_date: new Date().toISOString(),
+        author_id: userId
       };
 
       let response;
-      if (selectedProject) {
-        response = await updateProject(selectedProject.id, projectData);
+      if (selectedPost) {
+        response = await updateBlogPost(selectedPost.id, postData);
       } else {
-        response = await createProject(projectData);
+        response = await createBlogPost(postData);
       }
 
       if (response.error) throw new Error(response.error.message);
 
       toast({
         title: "Success",
-        description: `Project ${selectedProject ? "updated" : "created"} successfully`,
+        description: `Blog post ${selectedPost ? "updated" : "created"} successfully`,
       });
 
       resetForm();
-      fetchData();
+      fetchPosts();
     } catch (error) {
       toast({
         title: "Error",
-        description: error instanceof Error ? error.message : "Failed to save project",
+        description: error instanceof Error ? error.message : "Failed to save blog post",
         variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  const getCategoryName = (categoryId: string) => {
-    const category = categories.find(c => c.id === categoryId);
-    return category ? category.name : 'Unknown';
   };
 
   if (loading) {
@@ -208,13 +239,13 @@ export default function ProjectsManager() {
           <Link to="/admin" className="mr-4 p-2 hover:bg-secondary/50 rounded-full transition-colors">
             <ArrowLeft size={20} />
           </Link>
-          <h1 className="text-2xl font-bold">Manage Projects</h1>
+          <h1 className="text-2xl font-bold">Manage Blog Posts</h1>
         </div>
 
         <Tabs defaultValue="list" className="w-full">
           <TabsList>
-            <TabsTrigger value="list">Projects List</TabsTrigger>
-            <TabsTrigger value="add">{selectedProject ? 'Edit Project' : 'Add New Project'}</TabsTrigger>
+            <TabsTrigger value="list">Blog Posts</TabsTrigger>
+            <TabsTrigger value="add">{selectedPost ? 'Edit Post' : 'Add New Post'}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="list" className="mt-6">
@@ -228,14 +259,14 @@ export default function ProjectsManager() {
                   </div>
                 ))}
               </div>
-            ) : projects.length === 0 ? (
+            ) : posts.length === 0 ? (
               <div className="text-center py-12 bg-secondary/30 rounded-lg">
-                <FileUp size={40} className="mx-auto mb-4 text-muted-foreground" />
-                <h3 className="text-lg font-medium mb-2">No projects yet</h3>
-                <p className="text-muted-foreground mb-4">Start adding your portfolio projects</p>
+                <BookOpen size={40} className="mx-auto mb-4 text-muted-foreground" />
+                <h3 className="text-lg font-medium mb-2">No blog posts yet</h3>
+                <p className="text-muted-foreground mb-4">Start writing your first blog post</p>
                 <Button onClick={() => document.querySelector('[data-value="add"]')?.click()}>
                   <Plus size={16} className="mr-2" />
-                  Add Your First Project
+                  Create Your First Post
                 </Button>
               </div>
             ) : (
@@ -243,29 +274,39 @@ export default function ProjectsManager() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead>Name</TableHead>
-                      <TableHead>Category</TableHead>
+                      <TableHead>Title</TableHead>
+                      <TableHead>Slug</TableHead>
                       <TableHead>Status</TableHead>
-                      <TableHead>Date</TableHead>
+                      <TableHead>Published Date</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {projects.map((project) => (
-                      <TableRow key={project.id} className="hover:bg-secondary/20 transition-colors">
-                        <TableCell className="font-medium">{project.name}</TableCell>
-                        <TableCell>{getCategoryName(project.category_id)}</TableCell>
+                    {posts.map((post) => (
+                      <TableRow key={post.id} className="hover:bg-secondary/20 transition-colors">
+                        <TableCell className="font-medium">{post.title}</TableCell>
+                        <TableCell>{post.slug}</TableCell>
                         <TableCell>
-                          <span className={`px-2 py-1 text-xs rounded-full ${
-                            project.status === 'published' 
+                          <span className={`flex items-center gap-1 px-2 py-1 text-xs rounded-full ${
+                            post.is_published 
                               ? 'bg-green-100 text-green-800 dark:bg-green-800/20 dark:text-green-400' 
                               : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-800/20 dark:text-yellow-400'
                           }`}>
-                            {project.status}
+                            {post.is_published ? (
+                              <>
+                                <Eye size={12} />
+                                Published
+                              </>
+                            ) : (
+                              <>
+                                <EyeOff size={12} />
+                                Draft
+                              </>
+                            )}
                           </span>
                         </TableCell>
                         <TableCell>
-                          {new Date(project.created_at).toLocaleDateString()}
+                          {new Date(post.published_date).toLocaleDateString()}
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end space-x-2">
@@ -273,7 +314,7 @@ export default function ProjectsManager() {
                               variant="ghost"
                               size="sm"
                               onClick={() => {
-                                handleEditProject(project);
+                                handleEditPost(post);
                                 document.querySelector('[data-value="add"]')?.click();
                               }}
                             >
@@ -282,7 +323,7 @@ export default function ProjectsManager() {
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => handleDeleteProject(project.id)}
+                              onClick={() => handleDeletePost(post.id)}
                               className="text-destructive hover:text-destructive/80"
                             >
                               <Trash size={16} />
@@ -300,75 +341,89 @@ export default function ProjectsManager() {
           <TabsContent value="add" className="mt-6">
             <Card>
               <CardHeader>
-                <CardTitle>{selectedProject ? 'Edit Project' : 'Add New Project'}</CardTitle>
+                <CardTitle>{selectedPost ? 'Edit Blog Post' : 'Add New Blog Post'}</CardTitle>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="grid md:grid-cols-2 gap-6">
                     <div>
-                      <label htmlFor="name" className="block text-sm font-medium mb-1">
-                        Project Name*
+                      <label htmlFor="title" className="block text-sm font-medium mb-1">
+                        Title*
                       </label>
                       <Input
-                        id="name"
-                        name="name"
-                        value={formData.name}
+                        id="title"
+                        name="title"
+                        value={formData.title}
                         onChange={handleInputChange}
-                        placeholder="Project name"
+                        placeholder="Blog post title"
                         required
                       />
                     </div>
 
                     <div>
-                      <label htmlFor="category_id" className="block text-sm font-medium mb-1">
-                        Category*
+                      <label htmlFor="slug" className="block text-sm font-medium mb-1">
+                        Slug*
                       </label>
-                      <select
-                        id="category_id"
-                        name="category_id"
-                        value={formData.category_id}
+                      <Input
+                        id="slug"
+                        name="slug"
+                        value={formData.slug}
                         onChange={handleInputChange}
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                        placeholder="url-friendly-slug"
                         required
-                      >
-                        <option value="">Select a category</option>
-                        {categories.map((category) => (
-                          <option key={category.id} value={category.id}>
-                            {category.name}
-                          </option>
-                        ))}
-                      </select>
+                      />
                     </div>
 
                     <div className="md:col-span-2">
-                      <label htmlFor="description" className="block text-sm font-medium mb-1">
-                        Description*
+                      <label htmlFor="excerpt" className="block text-sm font-medium mb-1">
+                        Excerpt*
                       </label>
                       <Textarea
-                        id="description"
-                        name="description"
-                        value={formData.description}
+                        id="excerpt"
+                        name="excerpt"
+                        value={formData.excerpt}
                         onChange={handleInputChange}
-                        placeholder="Project description"
-                        rows={4}
+                        placeholder="Short description of your blog post"
+                        rows={2}
+                        required
+                      />
+                    </div>
+
+                    <div className="md:col-span-2">
+                      <label htmlFor="content" className="block text-sm font-medium mb-1">
+                        Content*
+                      </label>
+                      <Textarea
+                        id="content"
+                        name="content"
+                        value={formData.content}
+                        onChange={handleInputChange}
+                        placeholder="Write your blog post content here"
+                        rows={10}
                         required
                       />
                     </div>
 
                     <div>
-                      <label htmlFor="status" className="block text-sm font-medium mb-1">
-                        Status
+                      <label htmlFor="cover" className="block text-sm font-medium mb-1">
+                        Cover Image
                       </label>
-                      <select
-                        id="status"
-                        name="status"
-                        value={formData.status}
-                        onChange={handleInputChange}
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                      >
-                        <option value="draft">Draft</option>
-                        <option value="published">Published</option>
-                      </select>
+                      <Input
+                        id="cover"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleCoverChange}
+                        className="mb-2"
+                      />
+                      {coverPreview && (
+                        <div className="mt-2 aspect-video w-full rounded-md overflow-hidden">
+                          <img
+                            src={coverPreview}
+                            alt="Cover preview"
+                            className="w-full h-full object-cover"
+                          />
+                        </div>
+                      )}
                     </div>
 
                     <div>
@@ -404,7 +459,6 @@ export default function ProjectsManager() {
                               key={index}
                               className="bg-secondary text-secondary-foreground px-2 py-1 rounded-md text-sm flex items-center"
                             >
-                              <Tag size={12} className="mr-1" />
                               {tag}
                               <button
                                 type="button"
@@ -417,6 +471,20 @@ export default function ProjectsManager() {
                           ))}
                         </div>
                       )}
+                    </div>
+
+                    <div className="flex items-center space-x-2">
+                      <input
+                        type="checkbox"
+                        id="is_published"
+                        name="is_published"
+                        checked={formData.is_published}
+                        onChange={handleCheckboxChange}
+                        className="rounded border-input h-4 w-4"
+                      />
+                      <label htmlFor="is_published" className="text-sm font-medium">
+                        Publish immediately
+                      </label>
                     </div>
                   </div>
 
@@ -435,10 +503,10 @@ export default function ProjectsManager() {
                           <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
                           Saving...
                         </>
-                      ) : selectedProject ? (
-                        'Update Project'
+                      ) : selectedPost ? (
+                        'Update Post'
                       ) : (
-                        'Add Project'
+                        'Add Post'
                       )}
                     </Button>
                   </div>

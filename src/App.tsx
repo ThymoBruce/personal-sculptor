@@ -19,6 +19,8 @@ import BlogPost from "./pages/BlogPost";
 import Dashboard from "./pages/admin/Dashboard";
 import ProjectsManager from "./pages/admin/ProjectsManager";
 import LinksManager from "./pages/admin/LinksManager";
+import MusicManager from "./pages/admin/MusicManager";
+import BlogManager from "./pages/admin/BlogManager";
 import Login from "./pages/auth/Login";
 import Register from "./pages/auth/Register";
 import NotFound from "./pages/NotFound";
@@ -46,6 +48,8 @@ const App = () => (
                 <Route path="/admin" element={<Dashboard />} />
                 <Route path="/admin/projects" element={<ProjectsManager />} />
                 <Route path="/admin/links" element={<LinksManager />} />
+                <Route path="/admin/music" element={<MusicManager />} />
+                <Route path="/admin/blog" element={<BlogManager />} />
                 <Route path="/auth/login" element={<Login />} />
                 <Route path="/auth/register" element={<Register />} />
                 <Route path="*" element={<NotFound />} />
