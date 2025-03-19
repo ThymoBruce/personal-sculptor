@@ -1,10 +1,11 @@
+
 import { useState, useEffect } from "react";
 import { getSongs } from "@/lib/api";
 import { Song } from "@/lib/types";
 import AudioPlayer from "@/components/music/AudioPlayer";
 import { Disc3 } from "lucide-react";
 import { Link } from "react-router-dom";
-import Button from "@/components/ui/Button";
+import { Button } from "@/components/ui/button";
 
 export default function Music() {
   const [isLoading, setIsLoading] = useState(true);
@@ -110,7 +111,7 @@ export default function Music() {
                   
                   <div className="mt-auto">
                     <AudioPlayer 
-                      url={song.audio_url}
+                      audioUrl={song.audio_url}
                       title={song.title}
                       artist={song.producer}
                       duration={song.duration}
