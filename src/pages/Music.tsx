@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { getSongs } from "@/lib/api";
 import { Song } from "@/lib/types";
@@ -82,7 +81,10 @@ export default function Music() {
             </div>
           ) : (
             songs.map((song) => (
-              <div key={song.id} className="group relative bg-card rounded-lg overflow-hidden border">
+              <div
+                key={song.id}
+                className="group relative bg-card rounded-lg overflow-hidden border"
+              >
                 <div 
                   className="absolute inset-0 bg-cover bg-center transition-transform group-hover:scale-105" 
                   style={{ 
@@ -111,9 +113,8 @@ export default function Music() {
                   
                   <div className="mt-auto">
                     <AudioPlayer 
-                      audioUrl={song.audio_url}
+                      url={song.audio_url}
                       title={song.title}
-                      artist={song.producer}
                       duration={song.duration}
                     />
                   </div>

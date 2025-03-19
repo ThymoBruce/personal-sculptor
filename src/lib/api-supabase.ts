@@ -155,7 +155,12 @@ export async function getProjects(): Promise<ApiResponse<Project[]>> {
     
     if (error) throw error;
     
-    return { data };
+    const typedData = data?.map(project => ({
+      ...project,
+      status: project.status as 'draft' | 'published'
+    })) as Project[];
+    
+    return { data: typedData };
   } catch (error: any) {
     return { 
       error: { 
@@ -181,7 +186,12 @@ export async function getProjectById(id: string): Promise<ApiResponse<Project>> 
     
     if (error) throw error;
     
-    return { data };
+    const typedData = {
+      ...data,
+      status: data.status as 'draft' | 'published'
+    } as Project;
+    
+    return { data: typedData };
   } catch (error: any) {
     return { 
       error: { 
@@ -202,7 +212,12 @@ export async function createProject(project: Omit<Project, 'id' | 'created_at' |
     
     if (error) throw error;
     
-    return { data };
+    const typedData = {
+      ...data,
+      status: data.status as 'draft' | 'published'
+    } as Project;
+    
+    return { data: typedData };
   } catch (error: any) {
     return { 
       error: { 
@@ -230,7 +245,12 @@ export async function updateProject(id: string, project: Partial<Project>): Prom
     
     if (error) throw error;
     
-    return { data };
+    const typedData = {
+      ...data,
+      status: data.status as 'draft' | 'published'
+    } as Project;
+    
+    return { data: typedData };
   } catch (error: any) {
     return { 
       error: { 

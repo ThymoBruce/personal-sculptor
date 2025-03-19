@@ -1,3 +1,4 @@
+
 import { 
   ApiResponse, 
   Category, 
@@ -36,13 +37,18 @@ export const getProjects = async (): Promise<ApiResponse<Project[]>> => {
       .from('projects')
       .select(`
         *,
-        category:categories(*)
+        category:category_id(*)
       `)
       .eq('is_deleted', false);
     
     if (error) throw error;
     
-    return { data: data as Project[] };
+    const typedData = data?.map(project => ({
+      ...project,
+      status: project.status as 'draft' | 'published'
+    })) as Project[];
+    
+    return { data: typedData };
   } catch (error) {
     return { 
       error: { 
@@ -59,7 +65,7 @@ export const getProjectById = async (id: string): Promise<ApiResponse<Project>> 
       .from('projects')
       .select(`
         *,
-        category:categories(*),
+        category:category_id(*),
         attachments(*)
       `)
       .eq('id', id)
@@ -68,7 +74,12 @@ export const getProjectById = async (id: string): Promise<ApiResponse<Project>> 
     
     if (error) throw error;
     
-    return { data: data as Project };
+    const typedData = {
+      ...data,
+      status: data.status as 'draft' | 'published'
+    } as Project;
+    
+    return { data: typedData };
   } catch (error) {
     if (error instanceof Error && error.message.includes('No rows found')) {
       return { 

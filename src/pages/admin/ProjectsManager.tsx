@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { ArrowLeft, Plus, Trash, Pencil, FileUp, Tag, Check } from "lucide-react";
@@ -144,7 +143,6 @@ export default function ProjectsManager() {
     setIsSubmitting(true);
 
     try {
-      // Validate required fields
       if (!formData.name || !formData.description || !formData.category_id) {
         throw new Error("Please fill out all required fields");
       }

@@ -1,13 +1,14 @@
 import { useState, useEffect } from "react";
-import { useParams, Link } from "react-router-dom";
+import { getBlogPostBySlug } from "@/lib/api";
+import { useParams } from "react-router-dom";
+import { Link } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { getBlogPostBySlug } from "@/lib/api-supabase";
-import { BlogPost } from "@/lib/types";
+import type { BlogPost as BlogPostType } from "@/lib/types";
 
 export default function BlogPost() {
   const { slug } = useParams<{ slug: string }>();
-  const [post, setPost] = useState<BlogPost | null>(null);
+  const [post, setPost] = useState<BlogPostType | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
