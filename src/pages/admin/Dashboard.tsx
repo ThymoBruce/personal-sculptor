@@ -2,7 +2,7 @@
 import { useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { BarChart3, FileText, Link2, FileUp, LogOut, Music, Book } from "lucide-react";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import ResumeUploader from "@/components/admin/ResumeUploader";

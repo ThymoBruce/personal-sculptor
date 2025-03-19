@@ -1,4 +1,3 @@
-
 import { 
   ApiResponse, 
   Category, 
@@ -8,183 +7,18 @@ import {
   Song,
   BlogPost
 } from './types';
-
-// This is a placeholder for the Supabase client
-// We're mocking it for now and will be replaced with actual Supabase client
-const mockDelay = () => new Promise(resolve => setTimeout(resolve, 800));
-
-// Mock data
-const mockCategories: Category[] = [
-  {
-    id: '1',
-    name: 'Web Development',
-    description: 'Web application projects',
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: '2',
-    name: 'Mobile Apps',
-    description: 'Mobile application projects',
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: '3',
-    name: 'UI/UX Design',
-    description: 'Design projects',
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-];
-
-const mockProjects: Project[] = [
-  {
-    id: '1',
-    name: 'Portfolio Website',
-    description: 'Personal portfolio website built with React and Tailwind CSS',
-    category_id: '1',
-    tags: ['React', 'Tailwind CSS', 'Vite'],
-    is_deleted: false,
-    status: 'published',
-    author_id: 'user123',
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    created_by: 'user123',
-    modified_by: 'user123',
-    category: mockCategories[0],
-  },
-  {
-    id: '2',
-    name: 'E-commerce App',
-    description: 'Mobile e-commerce application with React Native',
-    category_id: '2',
-    tags: ['React Native', 'Redux', 'Node.js'],
-    is_deleted: false,
-    status: 'published',
-    author_id: 'user123',
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    created_by: 'user123',
-    modified_by: 'user123',
-    category: mockCategories[1],
-  },
-  {
-    id: '3',
-    name: 'Banking Dashboard',
-    description: 'UI design for a banking dashboard',
-    category_id: '3',
-    tags: ['Figma', 'UI Design', 'UX Research'],
-    is_deleted: false,
-    status: 'published',
-    author_id: 'user123',
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    created_by: 'user123',
-    modified_by: 'user123',
-    category: mockCategories[2],
-  },
-];
-
-const mockLinks: Link[] = [
-  {
-    id: '1',
-    title: 'GitHub',
-    url: 'https://github.com/ThymoBruce',
-    description: 'Check out my code repositories',
-    display_order: 1,
-    is_active: true,
-  },
-  {
-    id: '2',
-    title: 'LinkedIn',
-    url: 'https://linkedin.com/in/thymobruce',
-    description: 'Professional profile and resume',
-    display_order: 2,
-    is_active: true,
-  },
-  {
-    id: '3',
-    title: 'Instagram',
-    url: 'https://instagram.com/thymobruce',
-    description: 'My music and daily updates',
-    display_order: 3,
-    is_active: true,
-  },
-];
-
-const mockSongs: Song[] = [
-  {
-    id: '1',
-    title: 'Midnight Dreams',
-    producer: 'Thymo Bruce',
-    cover_image: '/placeholder.svg',
-    audio_url: 'https://assets.mixkit.co/music/preview/mixkit-tech-house-vibes-130.mp3',
-    release_date: '2023-05-15',
-    duration: 237,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: '2',
-    title: 'Coastal Waves',
-    producer: 'Thymo Bruce',
-    cover_image: '/placeholder.svg',
-    audio_url: 'https://assets.mixkit.co/music/preview/mixkit-serene-view-142.mp3',
-    release_date: '2023-08-22',
-    duration: 185,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-  {
-    id: '3',
-    title: 'Urban Rhythms',
-    producer: 'Thymo Bruce ft. DJ Maxwell',
-    cover_image: '/placeholder.svg',
-    audio_url: 'https://assets.mixkit.co/music/preview/mixkit-hip-hop-02-621.mp3',
-    release_date: '2024-01-10',
-    duration: 219,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-  },
-];
-
-const mockBlogPosts: BlogPost[] = [
-  {
-    id: '1',
-    title: 'My Journey into Full-Stack Development',
-    slug: 'journey-into-full-stack-development',
-    content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed euismod, nisl vel ultricies lacinia, nisl nisl aliquam nisl, nec aliquam nisl nisl nec nisl.',
-    excerpt: 'A reflection on my path to becoming a Full-Stack Developer and the lessons learned along the way.',
-    cover_image: '/placeholder.svg',
-    published_date: '2023-11-15',
-    tags: ['Career', 'Programming', 'Web Development'],
-    is_published: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    author_id: 'user123',
-  },
-  {
-    id: '2',
-    title: 'The Intersection of Music Production and Coding',
-    slug: 'intersection-music-production-coding',
-    content: 'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed euismod, nisl vel ultricies lacinia, nisl nisl aliquam nisl, nec aliquam nisl nisl nec nisl.',
-    excerpt: 'How my background in music production has influenced my approach to software development.',
-    cover_image: '/placeholder.svg',
-    published_date: '2024-01-05',
-    tags: ['Music', 'Programming', 'Creativity'],
-    is_published: true,
-    created_at: new Date().toISOString(),
-    updated_at: new Date().toISOString(),
-    author_id: 'user123',
-  },
-];
+import { supabase } from "@/integrations/supabase/client";
 
 // Categories API
 export const getCategories = async (): Promise<ApiResponse<Category[]>> => {
   try {
-    await mockDelay();
-    return { data: mockCategories };
+    const { data, error } = await supabase
+      .from('categories')
+      .select('*');
+    
+    if (error) throw error;
+    
+    return { data };
   } catch (error) {
     return { 
       error: { 
@@ -198,8 +32,17 @@ export const getCategories = async (): Promise<ApiResponse<Category[]>> => {
 // Projects API
 export const getProjects = async (): Promise<ApiResponse<Project[]>> => {
   try {
-    await mockDelay();
-    return { data: mockProjects };
+    const { data, error } = await supabase
+      .from('projects')
+      .select(`
+        *,
+        category:categories(*)
+      `)
+      .eq('is_deleted', false);
+    
+    if (error) throw error;
+    
+    return { data: data as Project[] };
   } catch (error) {
     return { 
       error: { 
@@ -212,9 +55,22 @@ export const getProjects = async (): Promise<ApiResponse<Project[]>> => {
 
 export const getProjectById = async (id: string): Promise<ApiResponse<Project>> => {
   try {
-    await mockDelay();
-    const project = mockProjects.find(p => p.id === id);
-    if (!project) {
+    const { data, error } = await supabase
+      .from('projects')
+      .select(`
+        *,
+        category:categories(*),
+        attachments(*)
+      `)
+      .eq('id', id)
+      .eq('is_deleted', false)
+      .single();
+    
+    if (error) throw error;
+    
+    return { data: data as Project };
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('No rows found')) {
       return { 
         error: { 
           message: 'Project not found', 
@@ -222,8 +78,7 @@ export const getProjectById = async (id: string): Promise<ApiResponse<Project>> 
         } 
       };
     }
-    return { data: project };
-  } catch (error) {
+    
     return { 
       error: { 
         message: 'Failed to fetch project', 
@@ -236,8 +91,15 @@ export const getProjectById = async (id: string): Promise<ApiResponse<Project>> 
 // Links API
 export const getLinks = async (): Promise<ApiResponse<Link[]>> => {
   try {
-    await mockDelay();
-    return { data: mockLinks };
+    const { data, error } = await supabase
+      .from('links')
+      .select('*')
+      .eq('is_active', true)
+      .order('display_order', { ascending: true });
+    
+    if (error) throw error;
+    
+    return { data: data as Link[] };
   } catch (error) {
     return { 
       error: { 
@@ -251,8 +113,14 @@ export const getLinks = async (): Promise<ApiResponse<Link[]>> => {
 // Songs API
 export const getSongs = async (): Promise<ApiResponse<Song[]>> => {
   try {
-    await mockDelay();
-    return { data: mockSongs };
+    const { data, error } = await supabase
+      .from('songs')
+      .select('*')
+      .order('release_date', { ascending: false });
+    
+    if (error) throw error;
+    
+    return { data: data as Song[] };
   } catch (error) {
     return { 
       error: { 
@@ -266,8 +134,16 @@ export const getSongs = async (): Promise<ApiResponse<Song[]>> => {
 // Blog API
 export const getBlogPosts = async (): Promise<ApiResponse<BlogPost[]>> => {
   try {
-    await mockDelay();
-    return { data: mockBlogPosts };
+    const { data, error } = await supabase
+      .from('blog_posts')
+      .select('*')
+      .order('published_date', { ascending: false });
+    
+    if (error) throw error;
+    
+    const publishedPosts = data?.filter(post => post.is_published) || [];
+    
+    return { data: publishedPosts as BlogPost[] };
   } catch (error) {
     return { 
       error: { 
@@ -280,9 +156,18 @@ export const getBlogPosts = async (): Promise<ApiResponse<BlogPost[]>> => {
 
 export const getBlogPostBySlug = async (slug: string): Promise<ApiResponse<BlogPost>> => {
   try {
-    await mockDelay();
-    const post = mockBlogPosts.find(p => p.slug === slug);
-    if (!post) {
+    const { data, error } = await supabase
+      .from('blog_posts')
+      .select('*')
+      .eq('slug', slug)
+      .eq('is_published', true)
+      .single();
+    
+    if (error) throw error;
+    
+    return { data: data as BlogPost };
+  } catch (error) {
+    if (error instanceof Error && error.message.includes('No rows found')) {
       return { 
         error: { 
           message: 'Blog post not found', 
@@ -290,8 +175,7 @@ export const getBlogPostBySlug = async (slug: string): Promise<ApiResponse<BlogP
         } 
       };
     }
-    return { data: post };
-  } catch (error) {
+    
     return { 
       error: { 
         message: 'Failed to fetch blog post', 
@@ -301,14 +185,25 @@ export const getBlogPostBySlug = async (slug: string): Promise<ApiResponse<BlogP
   }
 };
 
-// This will be replaced with actual authentication logic
+// This will be replaced with actual authentication logic from Supabase
 export const isAuthenticated = (): boolean => {
-  // Just for demo purposes
-  return false;
+  return supabase.auth.getSession() !== null;
 }
 
 // Helper to check if user is admin
-export const isAdmin = (): boolean => {
-  // Just for demo purposes
-  return false;
+export const isAdmin = async (): Promise<boolean> => {
+  try {
+    const { data } = await supabase.auth.getSession();
+    if (!data.session) return false;
+    
+    const { data: profile } = await supabase
+      .from('profiles')
+      .select('role')
+      .eq('id', data.session.user.id)
+      .single();
+    
+    return profile?.role === 'admin';
+  } catch (error) {
+    return false;
+  }
 }

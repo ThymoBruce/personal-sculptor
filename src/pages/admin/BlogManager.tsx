@@ -4,7 +4,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { ArrowLeft, Plus, Trash, Pencil, BookOpen, Eye, EyeOff } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -264,7 +264,12 @@ export default function BlogManager() {
                 <BookOpen size={40} className="mx-auto mb-4 text-muted-foreground" />
                 <h3 className="text-lg font-medium mb-2">No blog posts yet</h3>
                 <p className="text-muted-foreground mb-4">Start writing your first blog post</p>
-                <Button onClick={() => document.querySelector('[data-value="add"]')?.click()}>
+                <Button onClick={() => {
+                  const tabTrigger = document.querySelector('[data-value="add"]');
+                  if (tabTrigger instanceof HTMLElement) {
+                    tabTrigger.click();
+                  }
+                }}>
                   <Plus size={16} className="mr-2" />
                   Create Your First Post
                 </Button>
@@ -315,7 +320,10 @@ export default function BlogManager() {
                               size="sm"
                               onClick={() => {
                                 handleEditPost(post);
-                                document.querySelector('[data-value="add"]')?.click();
+                                const tabTrigger = document.querySelector('[data-value="add"]');
+                                if (tabTrigger instanceof HTMLElement) {
+                                  tabTrigger.click();
+                                }
                               }}
                             >
                               <Pencil size={16} />

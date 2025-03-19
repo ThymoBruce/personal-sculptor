@@ -1,159 +1,130 @@
-
 import { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
-import { getBlogPostBySlug } from "@/lib/api";
+import { ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { getBlogPostBySlug } from "@/lib/api-supabase";
 import { BlogPost } from "@/lib/types";
-import { ArrowLeft, Calendar, Tag } from "lucide-react";
 
-export default function BlogPostPage() {
+export default function BlogPost() {
   const { slug } = useParams<{ slug: string }>();
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [post, setPost] = useState<BlogPost | null>(null);
-  
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
-    const fetchPost = async () => {
-      if (!slug) return;
-      
-      setIsLoading(true);
+    const fetchBlogPost = async () => {
+      setLoading(true);
+      setError(null);
       try {
-        const response = await getBlogPostBySlug(slug);
-        
-        if (response.error) {
-          throw new Error(response.error.message);
+        if (!slug) {
+          throw new Error("Slug is missing");
         }
-        
-        setPost(response.data || null);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'An unknown error occurred');
+        const response = await getBlogPostBySlug(slug);
+        if (response.error) {
+          setError(response.error.message);
+        } else {
+          setPost(response.data || null);
+        }
+      } catch (err: any) {
+        setError(err.message || "Failed to fetch blog post");
       } finally {
-        setIsLoading(false);
+        setLoading(false);
       }
     };
-    
-    fetchPost();
+
+    fetchBlogPost();
   }, [slug]);
-  
-  // Format date
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', { 
-      year: 'numeric', 
-      month: 'long', 
-      day: 'numeric' 
-    });
-  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen pt-24 pb-16 flex items-center justify-center">
+        <div className="h-8 w-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen pt-24 pb-16 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-4xl font-bold mb-4">Error</h1>
+          <p className="text-muted-foreground mb-6">{error}</p>
+          <Link to="/blog" className="inline-flex items-center">
+            <Button>
+              Return to Blog
+            </Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
+
+  if (!post) {
+    return (
+      <div className="min-h-screen pt-24 pb-16 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-4xl font-bold mb-4">Post not found</h1>
+          <p className="text-muted-foreground mb-6">The blog post you're looking for doesn't exist or has been removed.</p>
+          <Link to="/blog" className="inline-flex items-center">
+            <Button>
+              Return to Blog
+            </Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen pt-24 pb-16">
       <div className="container mx-auto px-4 md:px-6">
-        <div className="max-w-3xl mx-auto">
-          <Link 
-            to="/blog" 
-            className="inline-flex items-center text-muted-foreground hover:text-primary mb-8 transition-colors"
-          >
+        <div className="mb-8">
+          <Link to="/blog" className="text-muted-foreground hover:text-foreground flex items-center">
             <ArrowLeft size={16} className="mr-2" />
-            Back to all posts
+            Back to Blog
           </Link>
-          
-          {isLoading ? (
-            <div className="animate-pulse space-y-4">
-              <div className="h-8 bg-secondary/50 rounded w-3/4"></div>
-              <div className="flex space-x-4 mb-6">
-                <div className="h-4 bg-secondary/50 rounded w-32"></div>
-                <div className="h-4 bg-secondary/50 rounded w-32"></div>
-              </div>
-              {post?.coverImage && (
-                <div className="aspect-video bg-secondary/50 rounded mb-8"></div>
-              )}
-              <div className="space-y-3">
-                <div className="h-4 bg-secondary/50 rounded w-full"></div>
-                <div className="h-4 bg-secondary/50 rounded w-full"></div>
-                <div className="h-4 bg-secondary/50 rounded w-2/3"></div>
-              </div>
-            </div>
-          ) : error ? (
-            <div className="text-center py-12">
-              <p className="text-destructive mb-4">{error}</p>
-              <Link 
-                to="/blog"
-                className="px-4 py-2 bg-primary text-primary-foreground rounded-md inline-block"
-              >
-                Return to Blog
-              </Link>
-            </div>
-          ) : post ? (
-            <article className="prose prose-sm md:prose-base lg:prose-lg dark:prose-invert max-w-none">
-              <h1 className="text-3xl md:text-4xl font-bold mb-4">{post.title}</h1>
-              
-              <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mb-8">
-                <div className="flex items-center">
-                  <Calendar size={16} className="mr-1" />
-                  <time dateTime={post.publishedDate}>{formatDate(post.publishedDate)}</time>
-                </div>
-                
-                <div className="flex items-center gap-2">
-                  <Tag size={16} />
-                  {post.tags.map((tag) => (
-                    <span 
-                      key={tag}
-                      className="bg-secondary/50 px-2 py-0.5 rounded-full text-xs"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
-              </div>
-              
-              {post.coverImage && (
-                <div className="mb-8">
-                  <img 
-                    src={post.coverImage} 
-                    alt={post.title} 
-                    className="w-full h-auto rounded-lg"
-                  />
-                </div>
-              )}
-              
-              <div className="mt-8">
-                {post.content}
-              </div>
-            </article>
-          ) : (
-            <div className="text-center py-12">
-              <h2 className="text-xl font-medium mb-2">Post not found</h2>
-              <p className="text-muted-foreground mb-4">The post you're looking for doesn't exist or has been removed.</p>
-              <Link 
-                to="/blog"
-                className="px-4 py-2 bg-primary text-primary-foreground rounded-md inline-block"
-              >
-                Return to Blog
-              </Link>
-            </div>
-          )}
-          
-          {post && (
-            <div className="mt-16 pt-8 border-t border-border">
-              <h2 className="text-xl font-semibold mb-4">Share this post</h2>
-              <div className="flex space-x-4">
-                <button className="px-4 py-2 bg-secondary/50 rounded-md text-sm hover:bg-secondary/70 transition-colors">
-                  Share on Twitter
-                </button>
-                <button className="px-4 py-2 bg-secondary/50 rounded-md text-sm hover:bg-secondary/70 transition-colors">
-                  Share on LinkedIn
-                </button>
-                <button 
-                  className="px-4 py-2 bg-secondary/50 rounded-md text-sm hover:bg-secondary/70 transition-colors"
-                  onClick={() => {
-                    navigator.clipboard.writeText(window.location.href);
-                    alert('Link copied to clipboard!');
-                  }}
-                >
-                  Copy Link
-                </button>
-              </div>
-            </div>
-          )}
         </div>
+      
+        <article className="mx-auto max-w-3xl">
+          <div className="mb-10">
+            <h1 className="text-4xl font-bold tracking-tight md:text-5xl mb-4">
+              {post.title}
+            </h1>
+            <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground">
+              <time dateTime={post.published_date}>
+                Published on {new Date(post.published_date).toLocaleDateString('en-US', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric'
+                })}
+              </time>
+            
+              <div className="flex flex-wrap gap-2">
+                {post.tags.map((tag) => (
+                  <span key={tag} className="bg-secondary text-secondary-foreground px-2 py-1 rounded-md text-xs">
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            </div>
+          </div>
+        
+          {post.cover_image && (
+            <div className="relative mb-10 aspect-video w-full overflow-hidden rounded-lg">
+              <img 
+                src={post.cover_image}
+                alt={post.title}
+                className="h-full w-full object-cover"
+              />
+            </div>
+          )}
+        
+          <div className="prose prose-lg dark:prose-invert max-w-none">
+            {post.content.split('\n').map((paragraph, index) => (
+              <p key={index}>{paragraph}</p>
+            ))}
+          </div>
+        </article>
       </div>
     </div>
   );

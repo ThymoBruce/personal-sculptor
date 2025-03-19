@@ -4,7 +4,7 @@ import { useNavigate, Link } from "react-router-dom";
 import { ArrowLeft, Plus, Trash, Pencil, Music, PlayCircle, PauseCircle } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/Card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -265,7 +265,12 @@ export default function MusicManager() {
                 <Music size={40} className="mx-auto mb-4 text-muted-foreground" />
                 <h3 className="text-lg font-medium mb-2">No songs yet</h3>
                 <p className="text-muted-foreground mb-4">Start adding your music tracks</p>
-                <Button onClick={() => document.querySelector('[data-value="add"]')?.click()}>
+                <Button onClick={() => {
+                  const tabTrigger = document.querySelector('[data-value="add"]');
+                  if (tabTrigger instanceof HTMLElement) {
+                    tabTrigger.click();
+                  }
+                }}>
                   <Plus size={16} className="mr-2" />
                   Add Your First Song
                 </Button>
@@ -313,7 +318,10 @@ export default function MusicManager() {
                               size="sm"
                               onClick={() => {
                                 handleEditSong(song);
-                                document.querySelector('[data-value="add"]')?.click();
+                                const tabTrigger = document.querySelector('[data-value="add"]');
+                                if (tabTrigger instanceof HTMLElement) {
+                                  tabTrigger.click();
+                                }
                               }}
                             >
                               <Pencil size={16} />
