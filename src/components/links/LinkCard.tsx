@@ -1,28 +1,27 @@
 
 import React from "react";
-import { Link } from "react-router-dom";
+import { Link as RouterLink } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ExternalLink } from "lucide-react";
+import { Link as LinkType } from "@/lib/types";
 
 interface LinkCardProps {
-  title: string;
-  url: string;
-  description?: string;
+  link: LinkType;
 }
 
-export default function LinkCard({ title, url, description }: LinkCardProps) {
-  const isExternal = url.startsWith("http");
+export default function LinkCard({ link }: LinkCardProps) {
+  const isExternal = link.url.startsWith("http");
 
   return (
     <Card className="h-full">
       <CardHeader className="pb-2">
-        <CardTitle className="text-xl">{title}</CardTitle>
-        {description && <CardDescription>{description}</CardDescription>}
+        <CardTitle className="text-xl">{link.title}</CardTitle>
+        {link.description && <CardDescription>{link.description}</CardDescription>}
       </CardHeader>
       <CardContent>
         {isExternal ? (
           <a
-            href={url}
+            href={link.url}
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center text-sm font-medium text-primary hover:underline"
@@ -30,12 +29,12 @@ export default function LinkCard({ title, url, description }: LinkCardProps) {
             Visit Link <ExternalLink size={14} className="ml-1" />
           </a>
         ) : (
-          <Link
-            to={url}
+          <RouterLink
+            to={link.url}
             className="inline-flex items-center text-sm font-medium text-primary hover:underline"
           >
             Visit Page
-          </Link>
+          </RouterLink>
         )}
       </CardContent>
     </Card>

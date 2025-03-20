@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from "react";
 import { Link as RouterLink } from "react-router-dom";
-import { getLinksFromSupabase } from "@/lib/api-supabase";
+import { getLinks } from "@/lib/api";
 import { Link } from "@/lib/types";
 import LinkCard from "@/components/links/LinkCard";
 import { ArrowUpRight, RefreshCw } from "lucide-react";
@@ -16,15 +16,13 @@ export default function Links() {
     const fetchLinks = async () => {
       setIsLoading(true);
       try {
-        const response = await getLinksFromSupabase();
+        const response = await getLinks();
         
         if (response.error) {
           throw new Error(response.error.message);
         }
         
-        // Filter only active links for public display
-        const activeLinks = (response.data || []).filter(link => link.is_active);
-        setLinks(activeLinks);
+        setLinks(response.data || []);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'An unknown error occurred');
       } finally {
