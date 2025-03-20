@@ -1,4 +1,3 @@
-
 import { supabase } from "@/integrations/supabase/client";
 import { Link, ApiResponse, Song, BlogPost, Project, Category, Attachment, Profile } from "./types";
 
@@ -146,10 +145,7 @@ export async function getProjects(): Promise<ApiResponse<Project[]>> {
   try {
     const { data, error } = await supabase
       .from('projects')
-      .select(`
-        *,
-        category:categories(*)
-      `)
+      .select('*, categories(*)')
       .eq('is_deleted', false)
       .order('created_at', { ascending: false });
     
@@ -160,7 +156,7 @@ export async function getProjects(): Promise<ApiResponse<Project[]>> {
       return {
         ...project,
         status: project.status as 'draft' | 'published',
-        category: project.category
+        category: project.categories as Category
       };
     }) as Project[];
     
@@ -179,11 +175,7 @@ export async function getProjectById(id: string): Promise<ApiResponse<Project>> 
   try {
     const { data, error } = await supabase
       .from('projects')
-      .select(`
-        *,
-        category:categories(*),
-        attachments(*)
-      `)
+      .select('*, categories(*), attachments(*)')
       .eq('id', id)
       .eq('is_deleted', false)
       .single();
@@ -193,7 +185,7 @@ export async function getProjectById(id: string): Promise<ApiResponse<Project>> 
     const typedData = {
       ...data,
       status: data.status as 'draft' | 'published',
-      category: data.category
+      category: data.categories as Category
     } as Project;
     
     return { data: typedData };

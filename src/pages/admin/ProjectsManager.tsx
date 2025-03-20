@@ -192,6 +192,13 @@ export default function ProjectsManager() {
     return category ? category.name : 'Unknown';
   };
 
+  const handleImageClick = () => {
+    const uploadInput = document.getElementById('upload-project-image');
+    if (uploadInput) {
+      (uploadInput as HTMLElement).click();
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -455,3 +462,4 @@ export default function ProjectsManager() {
     </div>
   );
 }
+

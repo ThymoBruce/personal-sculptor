@@ -1,4 +1,3 @@
-
 import { 
   ApiResponse, 
   Category, 
@@ -35,11 +34,7 @@ export const getProjects = async (): Promise<ApiResponse<Project[]>> => {
   try {
     const { data, error } = await supabase
       .from('projects')
-      .select(`
-        *,
-        category:categories(*)
-      `)
-      .eq('is_deleted', false);
+      .select('*, categories(*)');
     
     if (error) throw error;
     
@@ -48,7 +43,7 @@ export const getProjects = async (): Promise<ApiResponse<Project[]>> => {
       return {
         ...project,
         status: project.status as 'draft' | 'published',
-        category: project.category
+        category: project.categories as Category
       };
     }) as Project[];
     
@@ -67,11 +62,7 @@ export const getProjectById = async (id: string): Promise<ApiResponse<Project>> 
   try {
     const { data, error } = await supabase
       .from('projects')
-      .select(`
-        *,
-        category:categories(*),
-        attachments(*)
-      `)
+      .select('*, categories(*), attachments(*)')
       .eq('id', id)
       .eq('is_deleted', false)
       .single();
@@ -81,7 +72,7 @@ export const getProjectById = async (id: string): Promise<ApiResponse<Project>> 
     const typedData = {
       ...data,
       status: data.status as 'draft' | 'published',
-      category: data.category
+      category: data.categories as Category
     } as Project;
     
     return { data: typedData };

@@ -1,6 +1,6 @@
 
 import { Project } from "@/lib/types";
-import Card, { CardContent, CardDescription, CardHeader, CardTitle } from "../ui/Card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "react-router-dom";
 import { ArrowRight, Calendar } from "lucide-react";
 
@@ -15,11 +15,11 @@ export default function ProjectCard({ project }: ProjectCardProps) {
   });
 
   return (
-    <Card className="h-full" hoverEffect>
+    <Card className="h-full">
       <CardHeader>
         <div className="flex justify-between items-start mb-2">
           <span className="text-xs font-medium bg-secondary/50 text-secondary-foreground px-2.5 py-0.5 rounded">
-            {project.category?.name}
+            {project.category?.name || 'Uncategorized'}
           </span>
           <div className="flex items-center text-muted-foreground text-xs">
             <Calendar size={12} className="mr-1" />
