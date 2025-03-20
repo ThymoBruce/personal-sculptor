@@ -1,35 +1,43 @@
 
-import { Link as LinkType } from "@/lib/types";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
+import React from "react";
+import { Link } from "react-router-dom";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { ExternalLink } from "lucide-react";
 
 interface LinkCardProps {
-  link: LinkType;
+  title: string;
+  url: string;
+  description?: string;
 }
 
-export default function LinkCard({ link }: LinkCardProps) {
+export default function LinkCard({ title, url, description }: LinkCardProps) {
+  const isExternal = url.startsWith("http");
+
   return (
-    <a 
-      href={link.url} 
-      target="_blank"
-      rel="noopener noreferrer"
-      className="block"
-    >
-      <Card className="h-full transition-all hover:shadow-md hover:translate-y-[-2px]">
-        <CardHeader>
-          <div className="flex justify-between items-center">
-            <CardTitle className="flex items-center">
-              {link.title}
-              <ExternalLink size={16} className="ml-2 opacity-70" />
-            </CardTitle>
-          </div>
-        </CardHeader>
-        <CardContent>
-          {link.description && (
-            <CardDescription>{link.description}</CardDescription>
-          )}
-        </CardContent>
-      </Card>
-    </a>
+    <Card className="h-full">
+      <CardHeader className="pb-2">
+        <CardTitle className="text-xl">{title}</CardTitle>
+        {description && <CardDescription>{description}</CardDescription>}
+      </CardHeader>
+      <CardContent>
+        {isExternal ? (
+          <a
+            href={url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center text-sm font-medium text-primary hover:underline"
+          >
+            Visit Link <ExternalLink size={14} className="ml-1" />
+          </a>
+        ) : (
+          <Link
+            to={url}
+            className="inline-flex items-center text-sm font-medium text-primary hover:underline"
+          >
+            Visit Page
+          </Link>
+        )}
+      </CardContent>
+    </Card>
   );
 }

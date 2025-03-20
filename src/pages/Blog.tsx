@@ -67,6 +67,7 @@ export default function Blog() {
     currentPage * postsPerPage
   );
 
+  // Get all unique tags from all posts
   const allTags = [...new Set(posts.map((post) => post.tags).flat())];
 
   return (
@@ -92,12 +93,12 @@ export default function Blog() {
           </div>
           
           <div className="flex-shrink-0">
-            <Select onValueChange={handleTagChange}>
+            <Select onValueChange={handleTagChange} value={selectedTag}>
               <SelectTrigger className="w-[180px]">
                 <SelectValue placeholder="Filter by tag" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">All Tags</SelectItem>
+                <SelectItem value="all-tags">All Tags</SelectItem>
                 {allTags.map((tag) => (
                   <SelectItem key={tag} value={tag}>
                     {tag}

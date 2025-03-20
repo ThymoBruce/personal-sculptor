@@ -14,12 +14,15 @@ export default function ProjectCard({ project }: ProjectCardProps) {
     month: "short",
   });
 
+  // Handle potential missing category safely
+  const categoryName = project.category?.name || 'Uncategorized';
+
   return (
     <Card className="h-full">
       <CardHeader>
         <div className="flex justify-between items-start mb-2">
           <span className="text-xs font-medium bg-secondary/50 text-secondary-foreground px-2.5 py-0.5 rounded">
-            {project.category?.name || 'Uncategorized'}
+            {categoryName}
           </span>
           <div className="flex items-center text-muted-foreground text-xs">
             <Calendar size={12} className="mr-1" />
@@ -33,7 +36,7 @@ export default function ProjectCard({ project }: ProjectCardProps) {
       </CardHeader>
       <CardContent>
         <div className="flex flex-wrap gap-1 mb-4">
-          {project.tags.map((tag) => (
+          {project.tags && project.tags.map((tag) => (
             <span
               key={tag}
               className="text-xs bg-primary/5 text-primary-foreground px-2 py-0.5 rounded"

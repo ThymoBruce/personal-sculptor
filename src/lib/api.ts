@@ -1,3 +1,4 @@
+
 import { 
   ApiResponse, 
   Category, 
@@ -43,7 +44,7 @@ export const getProjects = async (): Promise<ApiResponse<Project[]>> => {
       return {
         ...project,
         status: project.status as 'draft' | 'published',
-        category: project.categories as Category
+        category: project.categories as unknown as Category // Safe casting
       };
     }) as Project[];
     
@@ -72,7 +73,7 @@ export const getProjectById = async (id: string): Promise<ApiResponse<Project>> 
     const typedData = {
       ...data,
       status: data.status as 'draft' | 'published',
-      category: data.categories as Category
+      category: data.categories as unknown as Category // Safe casting
     } as Project;
     
     return { data: typedData };

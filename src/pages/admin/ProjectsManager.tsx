@@ -1,18 +1,20 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { ArrowLeft, Plus, Trash, Pencil, FileUp, Tag, Check } from "lucide-react";
+import { ArrowLeft, Plus, Trash, Pencil, BookOpen } from "lucide-react";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectValue, SelectTrigger, SelectContent, SelectItem } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   getProjects, 
-  getCategories, 
+  getCategories,
   createProject, 
   updateProject, 
-  deleteProject 
+  deleteProject
 } from "@/lib/api-supabase";
 import { Project, Category } from "@/lib/types";
 import { useAuth } from "@/contexts/AuthContext";
@@ -24,8 +26,6 @@ export default function ProjectsManager() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  const [tags, setTags] = useState<string[]>([]);
-  const [tagInput, setTagInput] = useState("");
   const { user, loading } = useAuth();
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -35,6 +35,7 @@ export default function ProjectsManager() {
     description: "",
     category_id: "",
     status: "draft" as "draft" | "published",
+    tags: [] as string[],
   });
 
   useEffect(() => {
@@ -48,20 +49,16 @@ export default function ProjectsManager() {
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      const [projectsResponse, categoriesResponse] = await Promise.all([
-        getProjects(),
-        getCategories()
-      ]);
-      
+      const projectsResponse = await getProjects();
       if (projectsResponse.error) {
         throw new Error(projectsResponse.error.message);
       }
-      
+      setProjects(projectsResponse.data || []);
+
+      const categoriesResponse = await getCategories();
       if (categoriesResponse.error) {
         throw new Error(categoriesResponse.error.message);
       }
-      
-      setProjects(projectsResponse.data || []);
       setCategories(categoriesResponse.data || []);
     } catch (error) {
       toast({
@@ -74,23 +71,22 @@ export default function ProjectsManager() {
     }
   };
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ 
-      ...prev, 
-      [name]: name === "status" ? (value as "draft" | "published") : value 
-    }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleAddTag = () => {
-    if (tagInput.trim() && !tags.includes(tagInput.trim())) {
-      setTags([...tags, tagInput.trim()]);
-      setTagInput("");
-    }
+  const handleSelectChange = (value: string) => {
+    setFormData((prev) => ({ ...prev, category_id: value }));
   };
 
-  const handleRemoveTag = (tagToRemove: string) => {
-    setTags(tags.filter(tag => tag !== tagToRemove));
+  const handleStatusChange = (value: "draft" | "published") => {
+    setFormData((prev) => ({ ...prev, status: value }));
+  };
+
+  const handleTagsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value;
+    setFormData((prev) => ({ ...prev, tags: value.split(",").map(tag => tag.trim()) }));
   };
 
   const resetForm = () => {
@@ -99,42 +95,49 @@ export default function ProjectsManager() {
       description: "",
       category_id: "",
       status: "draft",
+      tags: [],
     });
-    setTags([]);
-    setTagInput("");
     setSelectedProject(null);
   };
 
-  const handleEditProject = (project: Project) => {
+  const handleDeleteClick = async (id: string) => {
+    if (window.confirm("Are you sure you want to delete this project?")) {
+      try {
+        const response = await deleteProject(id);
+        if (response.error) {
+          throw new Error(response.error.message);
+        }
+        toast({
+          title: "Success",
+          description: "Project deleted successfully",
+        });
+        fetchData();
+      } catch (error) {
+        toast({
+          title: "Error",
+          description: 
+            error instanceof Error 
+              ? error.message 
+              : "Failed to delete project",
+          variant: "destructive",
+        });
+      }
+    }
+  };
+
+  const handleEditClick = (project: Project) => {
     setSelectedProject(project);
     setFormData({
       name: project.name,
       description: project.description,
       category_id: project.category_id,
       status: project.status,
+      tags: project.tags || [],
     });
-    setTags(project.tags || []);
-  };
-
-  const handleDeleteProject = async (id: string) => {
-    if (!window.confirm("Are you sure you want to delete this project?")) return;
-
-    try {
-      const response = await deleteProject(id);
-      if (response.error) throw new Error(response.error.message);
-      
-      toast({
-        title: "Success",
-        description: "Project deleted successfully",
-      });
-      
-      fetchData();
-    } catch (error) {
-      toast({
-        title: "Error",
-        description: error instanceof Error ? error.message : "Failed to delete project",
-        variant: "destructive",
-      });
+    // Properly access the DOM element and cast it to HTMLElement to use click method
+    const tabTrigger = document.querySelector('[data-value="form"]');
+    if (tabTrigger instanceof HTMLElement) {
+      tabTrigger.click();
     }
   };
 
@@ -143,18 +146,9 @@ export default function ProjectsManager() {
     setIsSubmitting(true);
 
     try {
-      if (!formData.name || !formData.description || !formData.category_id) {
-        throw new Error("Please fill out all required fields");
-      }
-
       const userId = user?.id || "unknown";
       const projectData = {
-        name: formData.name,
-        description: formData.description,
-        category_id: formData.category_id,
-        status: formData.status,
-        tags,
-        is_deleted: false,
+        ...formData,
         author_id: userId,
         created_by: userId,
         modified_by: userId
@@ -187,18 +181,6 @@ export default function ProjectsManager() {
     }
   };
 
-  const getCategoryName = (categoryId: string) => {
-    const category = categories.find(c => c.id === categoryId);
-    return category ? category.name : 'Unknown';
-  };
-
-  const handleImageClick = () => {
-    const uploadInput = document.getElementById('upload-project-image');
-    if (uploadInput) {
-      (uploadInput as HTMLElement).click();
-    }
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -220,7 +202,7 @@ export default function ProjectsManager() {
         <Tabs defaultValue="list" className="w-full">
           <TabsList>
             <TabsTrigger value="list">Projects List</TabsTrigger>
-            <TabsTrigger value="add">{selectedProject ? 'Edit Project' : 'Add New Project'}</TabsTrigger>
+            <TabsTrigger value="form">{selectedProject ? 'Edit Project' : 'Add Project'}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="list" className="mt-6">
@@ -236,17 +218,17 @@ export default function ProjectsManager() {
               </div>
             ) : projects.length === 0 ? (
               <div className="text-center py-12 bg-secondary/30 rounded-lg">
-                <FileUp size={40} className="mx-auto mb-4 text-muted-foreground" />
+                <BookOpen size={40} className="mx-auto mb-4 text-muted-foreground" />
                 <h3 className="text-lg font-medium mb-2">No projects yet</h3>
-                <p className="text-muted-foreground mb-4">Start adding your portfolio projects</p>
+                <p className="text-muted-foreground mb-4">Start creating your first project</p>
                 <Button onClick={() => {
-                  const tabTrigger = document.querySelector('[data-value="add"]');
+                  const tabTrigger = document.querySelector('[data-value="form"]');
                   if (tabTrigger instanceof HTMLElement) {
                     tabTrigger.click();
                   }
                 }}>
                   <Plus size={16} className="mr-2" />
-                  Add Your First Project
+                  Create Your First Project
                 </Button>
               </div>
             ) : (
@@ -257,7 +239,7 @@ export default function ProjectsManager() {
                       <TableHead>Name</TableHead>
                       <TableHead>Category</TableHead>
                       <TableHead>Status</TableHead>
-                      <TableHead>Date</TableHead>
+                      <TableHead>Created At</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
@@ -265,35 +247,22 @@ export default function ProjectsManager() {
                     {projects.map((project) => (
                       <TableRow key={project.id} className="hover:bg-secondary/20 transition-colors">
                         <TableCell className="font-medium">{project.name}</TableCell>
-                        <TableCell>{getCategoryName(project.category_id)}</TableCell>
-                        <TableCell>
-                          <span className={`px-2 py-1 text-xs rounded-full ${
-                            project.status === 'published' 
-                              ? 'bg-green-100 text-green-800 dark:bg-green-800/20 dark:text-green-400' 
-                              : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-800/20 dark:text-yellow-400'
-                          }`}>
-                            {project.status}
-                          </span>
-                        </TableCell>
-                        <TableCell>
-                          {new Date(project.created_at).toLocaleDateString()}
-                        </TableCell>
+                        <TableCell>{project.category_id}</TableCell>
+                        <TableCell>{project.status}</TableCell>
+                        <TableCell>{new Date(project.created_at).toLocaleDateString()}</TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end space-x-2">
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => {
-                                handleEditProject(project);
-                                document.querySelector('[data-value="add"]')?.click();
-                              }}
+                              onClick={() => handleEditClick(project)}
                             >
                               <Pencil size={16} />
                             </Button>
                             <Button
                               variant="ghost"
                               size="sm"
-                              onClick={() => handleDeleteProject(project.id)}
+                              onClick={() => handleDeleteClick(project.id)}
                               className="text-destructive hover:text-destructive/80"
                             >
                               <Trash size={16} />
@@ -308,7 +277,7 @@ export default function ProjectsManager() {
             )}
           </TabsContent>
 
-          <TabsContent value="add" className="mt-6">
+          <TabsContent value="form" className="mt-6">
             <Card>
               <CardHeader>
                 <CardTitle>{selectedProject ? 'Edit Project' : 'Add New Project'}</CardTitle>
@@ -317,117 +286,64 @@ export default function ProjectsManager() {
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="grid md:grid-cols-2 gap-6">
                     <div>
-                      <label htmlFor="name" className="block text-sm font-medium mb-1">
-                        Project Name*
-                      </label>
+                      <Label htmlFor="name">Name</Label>
                       <Input
                         id="name"
                         name="name"
                         value={formData.name}
                         onChange={handleInputChange}
-                        placeholder="Project name"
                         required
                       />
                     </div>
 
                     <div>
-                      <label htmlFor="category_id" className="block text-sm font-medium mb-1">
-                        Category*
-                      </label>
-                      <select
-                        id="category_id"
-                        name="category_id"
-                        value={formData.category_id}
-                        onChange={handleInputChange}
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                        required
-                      >
-                        <option value="">Select a category</option>
-                        {categories.map((category) => (
-                          <option key={category.id} value={category.id}>
-                            {category.name}
-                          </option>
-                        ))}
-                      </select>
+                      <Label htmlFor="category_id">Category</Label>
+                      <Select onValueChange={handleSelectChange} defaultValue={formData.category_id}>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select a category" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {categories.map((category) => (
+                            <SelectItem key={category.id} value={category.id}>
+                              {category.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="status">Status</Label>
+                      <Select onValueChange={handleStatusChange} defaultValue={formData.status}>
+                        <SelectTrigger className="w-full">
+                          <SelectValue placeholder="Select status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="draft">Draft</SelectItem>
+                          <SelectItem value="published">Published</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <Label htmlFor="tags">Tags (comma separated)</Label>
+                      <Input
+                        id="tags"
+                        name="tags"
+                        value={formData.tags.join(", ")}
+                        onChange={handleTagsChange}
+                      />
                     </div>
 
                     <div className="md:col-span-2">
-                      <label htmlFor="description" className="block text-sm font-medium mb-1">
-                        Description*
-                      </label>
+                      <Label htmlFor="description">Description</Label>
                       <Textarea
                         id="description"
                         name="description"
                         value={formData.description}
                         onChange={handleInputChange}
-                        placeholder="Project description"
                         rows={4}
-                        required
                       />
-                    </div>
-
-                    <div>
-                      <label htmlFor="status" className="block text-sm font-medium mb-1">
-                        Status
-                      </label>
-                      <select
-                        id="status"
-                        name="status"
-                        value={formData.status}
-                        onChange={handleInputChange}
-                        className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                      >
-                        <option value="draft">Draft</option>
-                        <option value="published">Published</option>
-                      </select>
-                    </div>
-
-                    <div>
-                      <label htmlFor="tags" className="block text-sm font-medium mb-1">
-                        Tags
-                      </label>
-                      <div className="flex">
-                        <Input
-                          id="tags"
-                          value={tagInput}
-                          onChange={(e) => setTagInput(e.target.value)}
-                          placeholder="Add a tag"
-                          className="mr-2"
-                          onKeyDown={(e) => {
-                            if (e.key === 'Enter') {
-                              e.preventDefault();
-                              handleAddTag();
-                            }
-                          }}
-                        />
-                        <Button 
-                          type="button" 
-                          variant="secondary" 
-                          onClick={handleAddTag}
-                        >
-                          <Plus size={16} />
-                        </Button>
-                      </div>
-                      {tags.length > 0 && (
-                        <div className="flex flex-wrap gap-2 mt-2">
-                          {tags.map((tag, index) => (
-                            <div
-                              key={index}
-                              className="bg-secondary text-secondary-foreground px-2 py-1 rounded-md text-sm flex items-center"
-                            >
-                              <Tag size={12} className="mr-1" />
-                              {tag}
-                              <button
-                                type="button"
-                                onClick={() => handleRemoveTag(tag)}
-                                className="ml-1 text-muted-foreground hover:text-foreground"
-                              >
-                                &times;
-                              </button>
-                            </div>
-                          ))}
-                        </div>
-                      )}
                     </div>
                   </div>
 
@@ -462,4 +378,3 @@ export default function ProjectsManager() {
     </div>
   );
 }
-
