@@ -84,13 +84,6 @@ export default function Music() {
                   <Card className="bg-card/50 backdrop-blur mb-8">
                     <CardContent className="p-6">
                       <div className="flex flex-col md:flex-row gap-6 items-center">
-                        <div className="w-48 h-48 flex-shrink-0">
-                          <img
-                            src={activeSong.cover_image}
-                            alt={activeSong.title}
-                            className="w-full h-full object-cover rounded-md"
-                          />
-                        </div>
                         <div className="flex-grow">
                           <h3 className="text-2xl font-bold mb-2">
                             {activeSong.title}

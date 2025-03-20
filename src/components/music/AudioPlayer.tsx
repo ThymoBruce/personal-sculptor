@@ -106,54 +106,39 @@ export default function AudioPlayer({ audioUrl, title, producer, coverImage, dur
   
   return (
     <div className="bg-background border border-border rounded-lg overflow-hidden shadow-sm">
-      <div className="flex flex-col md:flex-row">
-        <div className="w-full md:w-1/3 md:max-w-[200px] aspect-square relative overflow-hidden">
-          <img 
-            src={coverImage} 
-            alt={title} 
-            className="w-full h-full object-cover"
-          />
-        </div>
-        
-        <div className="flex-1 p-4 md:p-6 flex flex-col justify-between">
-          <div>
-            <h3 className="text-xl font-medium">{title}</h3>
-            <p className="text-muted-foreground">{producer}</p>
-          </div>
-          
-          <div className="mt-4 space-y-4">
-            <div className="flex items-center space-x-4">
-              <button 
-                onClick={togglePlay}
-                className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 transition-colors"
-                aria-label={isPlaying ? "Pause" : "Play"}
-              >
-                {isPlaying ? <Pause size={18} /> : <Play size={18} className="ml-0.5" />}
-              </button>
-              
-              <div className="flex-1">
-                <Slider
-                  defaultValue={[0]} 
-                  value={[progress]}
-                  max={100}
-                  step={0.1}
-                  onValueChange={handleSliderChange}
-                  className="mb-1"
-                />
-                <div className="flex justify-between text-xs text-muted-foreground">
-                  <span>{formatTime(currentTime)}</span>
-                  <span>{formatTime(duration)}</span>
-                </div>
+      <div className="p-4 md:p-6">
+        <div className="mt-4 space-y-4">
+          <div className="flex items-center space-x-4">
+            <button 
+              onClick={togglePlay}
+              className="w-10 h-10 rounded-full bg-primary text-primary-foreground flex items-center justify-center hover:bg-primary/90 transition-colors"
+              aria-label={isPlaying ? "Pause" : "Play"}
+            >
+              {isPlaying ? <Pause size={18} /> : <Play size={18} className="ml-0.5" />}
+            </button>
+            
+            <div className="flex-1">
+              <Slider
+                defaultValue={[0]} 
+                value={[progress]}
+                max={100}
+                step={0.1}
+                onValueChange={handleSliderChange}
+                className="mb-1"
+              />
+              <div className="flex justify-between text-xs text-muted-foreground">
+                <span>{formatTime(currentTime)}</span>
+                <span>{formatTime(duration)}</span>
               </div>
-              
-              <button 
-                onClick={handleShare}
-                className="p-2 text-muted-foreground hover:text-foreground"
-                aria-label="Share"
-              >
-                <Share2 size={18} />
-              </button>
             </div>
+            
+            <button 
+              onClick={handleShare}
+              className="p-2 text-muted-foreground hover:text-foreground"
+              aria-label="Share"
+            >
+              <Share2 size={18} />
+            </button>
           </div>
         </div>
       </div>
