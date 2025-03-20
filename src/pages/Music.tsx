@@ -32,6 +32,42 @@ export default function Music() {
     fetchSongs();
   }, []);
 
+  if (loading) {
+    return (
+      <div className="min-h-screen pt-24 pb-16 flex items-center justify-center">
+        <div className="h-8 w-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen pt-24 pb-16 flex items-center justify-center">
+        <div className="text-center">
+          <Disc3 size={48} className="mx-auto text-muted-foreground mb-4" />
+          <p className="text-destructive mb-4">{error}</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-primary text-primary-foreground rounded-md"
+          >
+            Try Again
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (songs.length === 0) {
+    return (
+      <div className="min-h-screen pt-24 pb-16 flex items-center justify-center">
+        <div className="text-center">
+          <h3 className="text-lg font-medium mb-2">No music available yet</h3>
+          <p className="text-muted-foreground">Check back soon for new releases!</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen pt-24 pb-16">
       <div className="container mx-auto px-4 md:px-6">
@@ -113,7 +149,7 @@ export default function Music() {
                   
                   <div className="mt-auto">
                     <AudioPlayer 
-                      url={song.audio_url}
+                      audioUrl={song.audio_url}
                       title={song.title}
                       duration={song.duration}
                     />

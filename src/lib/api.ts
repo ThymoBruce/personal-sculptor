@@ -37,16 +37,20 @@ export const getProjects = async (): Promise<ApiResponse<Project[]>> => {
       .from('projects')
       .select(`
         *,
-        category:category_id(*)
+        category:categories(*)
       `)
       .eq('is_deleted', false);
     
     if (error) throw error;
     
-    const typedData = data?.map(project => ({
-      ...project,
-      status: project.status as 'draft' | 'published'
-    })) as Project[];
+    // Process the data to match our types
+    const typedData = data?.map(project => {
+      return {
+        ...project,
+        status: project.status as 'draft' | 'published',
+        category: project.category
+      };
+    }) as Project[];
     
     return { data: typedData };
   } catch (error) {
@@ -65,7 +69,7 @@ export const getProjectById = async (id: string): Promise<ApiResponse<Project>> 
       .from('projects')
       .select(`
         *,
-        category:category_id(*),
+        category:categories(*),
         attachments(*)
       `)
       .eq('id', id)
@@ -76,7 +80,8 @@ export const getProjectById = async (id: string): Promise<ApiResponse<Project>> 
     
     const typedData = {
       ...data,
-      status: data.status as 'draft' | 'published'
+      status: data.status as 'draft' | 'published',
+      category: data.category
     } as Project;
     
     return { data: typedData };
