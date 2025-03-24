@@ -16,7 +16,7 @@ import Links from "./pages/Links";
 import Music from "./pages/Music";
 import Blog from "./pages/Blog";
 import BlogPost from "./pages/BlogPost";
-import Dashboard from "./pages/admin/Dashboard";
+import Dashboard from "./pages/Dashboard";
 import ProjectsManager from "./pages/admin/ProjectsManager";
 import LinksManager from "./pages/admin/LinksManager";
 import MusicManager from "./pages/admin/MusicManager";
@@ -45,6 +45,7 @@ const App = () => (
                 <Route path="/music" element={<Music />} />
                 <Route path="/blog" element={<Blog />} />
                 <Route path="/blog/:slug" element={<BlogPost />} />
+                <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/admin" element={<Dashboard />} />
                 <Route path="/admin/projects" element={<ProjectsManager />} />
                 <Route path="/admin/links" element={<LinksManager />} />
