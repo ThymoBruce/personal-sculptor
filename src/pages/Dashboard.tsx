@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Globe, FileText, CheckSquare } from "lucide-react";
+import { Globe, FileText, CheckSquare, LayoutDashboard } from "lucide-react";
 import WebsiteList from "@/components/dashboard/WebsiteList";
 import DocumentManager from "@/components/dashboard/DocumentManager";
 import TodoList from "@/components/dashboard/TodoList";
@@ -11,7 +11,7 @@ import TodoList from "@/components/dashboard/TodoList";
 export default function Dashboard() {
   const { user, loading } = useAuth();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("websites");
+  const [activeTab, setActiveTab] = useState("dashboard");
 
   useEffect(() => {
     if (!loading && !user) {
@@ -42,7 +42,11 @@ export default function Dashboard() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-3 max-w-md mx-auto mb-8">
+          <TabsList className="grid w-full grid-cols-4 max-w-md mx-auto mb-8">
+            <TabsTrigger value="dashboard" className="flex items-center gap-2">
+              <LayoutDashboard size={16} />
+              <span className="hidden sm:inline">Dashboard</span>
+            </TabsTrigger>
             <TabsTrigger value="websites" className="flex items-center gap-2">
               <Globe size={16} />
               <span className="hidden sm:inline">Websites</span>
@@ -57,6 +61,29 @@ export default function Dashboard() {
             </TabsTrigger>
           </TabsList>
 
+          <TabsContent value="dashboard">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              <DashboardCard 
+                title="Websites" 
+                description="Manage your favorite external websites"
+                icon={<Globe className="h-6 w-6" />}
+                linkTo={() => setActiveTab("websites")}
+              />
+              <DashboardCard 
+                title="Documents" 
+                description="Upload and manage your documents"
+                icon={<FileText className="h-6 w-6" />}
+                linkTo={() => setActiveTab("documents")}
+              />
+              <DashboardCard 
+                title="To-Do List" 
+                description="Manage your tasks and stay organized"
+                icon={<CheckSquare className="h-6 w-6" />}
+                linkTo={() => setActiveTab("todos")}
+              />
+            </div>
+          </TabsContent>
+          
           <TabsContent value="websites">
             <WebsiteList />
           </TabsContent>
@@ -70,6 +97,30 @@ export default function Dashboard() {
           </TabsContent>
         </Tabs>
       </div>
+    </div>
+  );
+}
+
+interface DashboardCardProps {
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+  linkTo: () => void;
+}
+
+function DashboardCard({ title, description, icon, linkTo }: DashboardCardProps) {
+  return (
+    <div 
+      className="bg-card border rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow cursor-pointer"
+      onClick={linkTo}
+    >
+      <div className="flex items-center gap-4 mb-3">
+        <div className="p-2 bg-primary/10 rounded-full text-primary">
+          {icon}
+        </div>
+        <h3 className="text-xl font-medium">{title}</h3>
+      </div>
+      <p className="text-muted-foreground">{description}</p>
     </div>
   );
 }

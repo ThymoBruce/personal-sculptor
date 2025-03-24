@@ -124,7 +124,7 @@ export default function WebsiteList() {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-2xl font-bold">Favorite Websites</h2>
+        <h2 className="text-2xl font-bold">External Websites</h2>
         <Button onClick={handleAddWebsite} className="flex items-center gap-2">
           <PlusCircle size={16} />
           <span>Add Website</span>
@@ -135,7 +135,7 @@ export default function WebsiteList() {
         <Card>
           <CardContent className="flex flex-col items-center justify-center py-10">
             <p className="text-center text-muted-foreground mb-4">
-              You don't have any websites saved yet.
+              You don't have any external websites saved yet.
             </p>
             <Button onClick={handleAddWebsite} variant="outline" className="flex items-center gap-2">
               <PlusCircle size={16} />
@@ -198,7 +198,7 @@ export default function WebsiteList() {
             <SheetDescription>
               {editingWebsite 
                 ? "Update this website's details below." 
-                : "Add a new website to your collection."
+                : "Add a new external website to your collection."
               }
             </SheetDescription>
           </SheetHeader>
