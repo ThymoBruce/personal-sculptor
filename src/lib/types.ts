@@ -41,6 +41,25 @@ export interface Link {
   is_active: boolean;
 }
 
+export interface Document {
+  id: string;
+  name: string;
+  file_url: string;
+  file_size: number;
+  file_type: string;
+  user_id: string;
+  created_at: string;
+}
+
+export interface Todo {
+  id: string;
+  title: string;
+  completed: boolean;
+  priority: string;
+  user_id: string;
+  created_at: string;
+}
+
 export interface Song {
   id: string;
   title: string;

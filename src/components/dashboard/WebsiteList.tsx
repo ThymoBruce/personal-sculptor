@@ -1,152 +1,122 @@
 
 import React, { useState, useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { Link as LinkType } from "@/lib/types";
+import { PlusCircle, Pencil, Trash, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { Globe, Plus, Edit, Trash, ExternalLink } from "lucide-react";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { getLinksFromSupabase, createLink, updateLink, deleteLink } from "@/lib/api-supabase";
+import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { useToast } from "@/hooks/use-toast";
 import WebsiteForm from "./WebsiteForm";
-import { supabase } from "@/integrations/supabase/client";
-import { Link } from "@/lib/types";
 
 export default function WebsiteList() {
-  const [websites, setWebsites] = useState<Link[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [isAddingWebsite, setIsAddingWebsite] = useState(false);
-  const [editingWebsite, setEditingWebsite] = useState<Link | null>(null);
+  const { user } = useAuth();
   const { toast } = useToast();
+  const [websites, setWebsites] = useState<LinkType[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [openForm, setOpenForm] = useState(false);
+  const [editingWebsite, setEditingWebsite] = useState<LinkType | null>(null);
+
+  const fetchWebsites = async () => {
+    if (!user) return;
+    
+    setLoading(true);
+    const response = await getLinksFromSupabase();
+    
+    if (response.data) {
+      setWebsites(response.data);
+    } else if (response.error) {
+      toast({
+        title: "Error",
+        description: response.error.message,
+        variant: "destructive"
+      });
+    }
+    
+    setLoading(false);
+  };
 
   useEffect(() => {
     fetchWebsites();
-  }, []);
+  }, [user]);
 
-  const fetchWebsites = async () => {
-    setIsLoading(true);
-    try {
-      const { data, error } = await supabase
-        .from("links")
-        .select("*")
-        .order("display_order", { ascending: true });
-
-      if (error) throw error;
-      setWebsites(data || []);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "An unknown error occurred";
-      setError(errorMessage);
-      toast({
-        variant: "destructive",
-        title: "Failed to load websites",
-        description: errorMessage,
-      });
-    } finally {
-      setIsLoading(false);
-    }
+  const handleAddWebsite = () => {
+    setEditingWebsite(null);
+    setOpenForm(true);
   };
 
-  const handleAddWebsite = async (websiteData: Omit<Link, "id">) => {
-    try {
-      const { data, error } = await supabase
-        .from("links")
-        .insert([websiteData])
-        .select()
-        .single();
-
-      if (error) throw error;
-      setWebsites([...websites, data]);
-      setIsAddingWebsite(false);
-      toast({
-        title: "Website Added",
-        description: "The website has been successfully added",
-      });
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to add website";
-      toast({
-        variant: "destructive",
-        title: "Failed to add website",
-        description: errorMessage,
-      });
-    }
-  };
-
-  const handleUpdateWebsite = async (websiteData: Omit<Link, "id">) => {
-    if (!editingWebsite) return;
-    
-    try {
-      const { data, error } = await supabase
-        .from("links")
-        .update(websiteData)
-        .eq("id", editingWebsite.id)
-        .select()
-        .single();
-
-      if (error) throw error;
-      setWebsites(websites.map(website => 
-        website.id === editingWebsite.id ? data : website
-      ));
-      setEditingWebsite(null);
-      toast({
-        title: "Website Updated",
-        description: "The website has been successfully updated",
-      });
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to update website";
-      toast({
-        variant: "destructive",
-        title: "Failed to update website",
-        description: errorMessage,
-      });
-    }
+  const handleEditWebsite = (website: LinkType) => {
+    setEditingWebsite(website);
+    setOpenForm(true);
   };
 
   const handleDeleteWebsite = async (id: string) => {
     if (!confirm("Are you sure you want to delete this website?")) return;
     
-    try {
-      const { error } = await supabase
-        .from("links")
-        .delete()
-        .eq("id", id);
-
-      if (error) throw error;
-      setWebsites(websites.filter(website => website.id !== id));
+    const response = await deleteLink(id);
+    
+    if (!response.error) {
+      setWebsites(websites.filter(site => site.id !== id));
       toast({
-        title: "Website Deleted",
-        description: "The website has been successfully deleted",
+        title: "Website deleted",
+        description: "The website has been removed from your list."
       });
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to delete website";
+    } else {
       toast({
-        variant: "destructive",
-        title: "Failed to delete website",
-        description: errorMessage,
+        title: "Error",
+        description: response.error.message,
+        variant: "destructive"
       });
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="grid md:grid-cols-3 gap-6">
-        {[1, 2, 3, 4, 5, 6].map((i) => (
-          <Card key={i} className="h-32 animate-pulse">
-            <CardContent className="flex items-center justify-center h-full bg-secondary/40">
-              <Globe className="h-8 w-8 text-muted" />
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-    );
-  }
+  const handleFormSubmit = async (data: Omit<LinkType, 'id'>) => {
+    if (editingWebsite) {
+      // Update existing website
+      const response = await updateLink(editingWebsite.id, data);
+      
+      if (response.data) {
+        setWebsites(websites.map(site => 
+          site.id === editingWebsite.id ? response.data! : site
+        ));
+        toast({
+          title: "Website updated",
+          description: "Your changes have been saved."
+        });
+      } else if (response.error) {
+        toast({
+          title: "Error",
+          description: response.error.message,
+          variant: "destructive"
+        });
+      }
+    } else {
+      // Create new website
+      const response = await createLink(data);
+      
+      if (response.data) {
+        setWebsites([...websites, response.data]);
+        toast({
+          title: "Website added",
+          description: "The website has been added to your list."
+        });
+      } else if (response.error) {
+        toast({
+          title: "Error",
+          description: response.error.message,
+          variant: "destructive"
+        });
+      }
+    }
+    
+    setOpenForm(false);
+  };
 
-  if (error) {
+  if (loading) {
     return (
-      <div className="text-center py-12">
-        <p className="text-destructive mb-4">{error}</p>
-        <Button 
-          onClick={() => fetchWebsites()}
-          variant="outline"
-        >
-          Try Again
-        </Button>
+      <div className="flex justify-center my-12">
+        <div className="h-8 w-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -154,94 +124,93 @@ export default function WebsiteList() {
   return (
     <div>
       <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold">Frequently Used Websites</h2>
-        <Button 
-          onClick={() => {
-            setIsAddingWebsite(true);
-            setEditingWebsite(null);
-          }}
-          className="flex items-center gap-2"
-        >
-          <Plus size={16} />
-          Add Website
+        <h2 className="text-2xl font-bold">Favorite Websites</h2>
+        <Button onClick={handleAddWebsite} className="flex items-center gap-2">
+          <PlusCircle size={16} />
+          <span>Add Website</span>
         </Button>
       </div>
 
-      {(isAddingWebsite || editingWebsite) && (
-        <div className="mb-6 bg-card p-4 rounded-lg border">
-          <WebsiteForm
-            initialData={editingWebsite || undefined}
-            onSubmit={editingWebsite ? handleUpdateWebsite : handleAddWebsite}
-            onCancel={() => {
-              setIsAddingWebsite(false);
-              setEditingWebsite(null);
-            }}
-          />
-        </div>
-      )}
-
       {websites.length === 0 ? (
-        <div className="text-center py-12 bg-secondary/20 rounded-lg">
-          <Globe className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-          <p className="text-muted-foreground mb-4">No websites found. Add your first website to get started.</p>
-          <Button 
-            onClick={() => {
-              setIsAddingWebsite(true);
-              setEditingWebsite(null);
-            }}
-          >
-            Add Website
-          </Button>
-        </div>
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-10">
+            <p className="text-center text-muted-foreground mb-4">
+              You don't have any websites saved yet.
+            </p>
+            <Button onClick={handleAddWebsite} variant="outline" className="flex items-center gap-2">
+              <PlusCircle size={16} />
+              <span>Add your first website</span>
+            </Button>
+          </CardContent>
+        </Card>
       ) : (
-        <div className="grid md:grid-cols-3 gap-6">
-          {websites.map((website) => (
-            <Card key={website.id} className="relative group">
-              <CardContent className="p-4 flex flex-col h-32">
-                <div className="absolute top-2 right-2 flex space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Button 
-                    size="sm" 
-                    variant="ghost" 
-                    className="h-8 w-8 p-0"
-                    onClick={() => {
-                      setEditingWebsite(website);
-                      setIsAddingWebsite(false);
-                    }}
-                  >
-                    <Edit size={14} />
-                    <span className="sr-only">Edit</span>
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    variant="ghost" 
-                    className="h-8 w-8 p-0 text-destructive"
-                    onClick={() => handleDeleteWebsite(website.id)}
-                  >
-                    <Trash size={14} />
-                    <span className="sr-only">Delete</span>
-                  </Button>
-                </div>
-                
-                <h3 className="font-medium mb-1 truncate pr-16">{website.title}</h3>
-                {website.description && (
-                  <p className="text-sm text-muted-foreground mb-2 line-clamp-2">{website.description}</p>
-                )}
-                
-                <div className="mt-auto">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {websites.map(website => (
+            <Card key={website.id} className="flex flex-col h-full">
+              <CardHeader>
+                <CardTitle className="flex justify-between items-start">
+                  <span className="truncate mr-2">{website.title}</span>
                   <a 
                     href={website.url} 
                     target="_blank" 
                     rel="noopener noreferrer"
-                    className="inline-flex items-center text-sm font-medium text-primary hover:underline"
+                    className="text-primary hover:text-primary/80 transition-colors"
                   >
-                    Visit Website <ExternalLink size={14} className="ml-1" />
+                    <ExternalLink size={18} />
                   </a>
-                </div>
+                </CardTitle>
+                {website.description && (
+                  <CardDescription>{website.description}</CardDescription>
+                )}
+              </CardHeader>
+              <CardContent className="flex-grow">
+                <p className="text-sm text-muted-foreground truncate">
+                  {website.url}
+                </p>
               </CardContent>
+              <CardFooter className="flex justify-end gap-2 border-t pt-4">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => handleEditWebsite(website)}
+                >
+                  <Pencil size={16} />
+                </Button>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => handleDeleteWebsite(website.id)}
+                >
+                  <Trash size={16} />
+                </Button>
+              </CardFooter>
             </Card>
           ))}
         </div>
       )}
+
+      <Sheet open={openForm} onOpenChange={setOpenForm}>
+        <SheetContent className="sm:max-w-md">
+          <SheetHeader>
+            <SheetTitle>
+              {editingWebsite ? "Edit Website" : "Add Website"}
+            </SheetTitle>
+            <SheetDescription>
+              {editingWebsite 
+                ? "Update this website's details below." 
+                : "Add a new website to your collection."
+              }
+            </SheetDescription>
+          </SheetHeader>
+          <div className="py-6">
+            <WebsiteForm 
+              initialData={editingWebsite || undefined}
+              onSubmit={handleFormSubmit}
+              onCancel={() => setOpenForm(false)}
+            />
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

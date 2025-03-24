@@ -1,90 +1,95 @@
 
 import React, { useState, useEffect } from "react";
+import { useAuth } from "@/contexts/AuthContext";
+import { Todo } from "@/lib/types";
+import { 
+  PlusCircle, 
+  Trash, 
+  Flag, 
+  CheckCircle, 
+  Circle 
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
-import { CheckSquare, Plus, Trash, CheckCheck, CircleEllipsis } from "lucide-react";
-import { useToast } from "@/hooks/use-toast";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox";
+import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-
-interface Todo {
-  id: string;
-  title: string;
-  completed: boolean;
-  created_at: string;
-  priority: 'low' | 'medium' | 'high';
-}
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function TodoList() {
-  const [todos, setTodos] = useState<Todo[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  const [newTodoTitle, setNewTodoTitle] = useState("");
+  const { user } = useAuth();
   const { toast } = useToast();
-
-  useEffect(() => {
-    fetchTodos();
-  }, []);
+  const [todos, setTodos] = useState<Todo[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [newTask, setNewTask] = useState("");
+  const [priority, setPriority] = useState("medium");
 
   const fetchTodos = async () => {
-    setIsLoading(true);
+    if (!user) return;
+    
+    setLoading(true);
     try {
       const { data, error } = await supabase
         .from('todos')
         .select('*')
         .order('created_at', { ascending: false });
-
+        
       if (error) throw error;
-      setTodos(data || []);
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "An unknown error occurred";
-      setError(errorMessage);
+      
+      setTodos(data as Todo[]);
+    } catch (error: any) {
       toast({
-        variant: "destructive",
-        title: "Failed to load todos",
-        description: errorMessage,
+        title: "Error",
+        description: error.message || "Failed to fetch todos",
+        variant: "destructive"
       });
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 
+  useEffect(() => {
+    fetchTodos();
+  }, [user]);
+
   const addTodo = async (e: React.FormEvent) => {
     e.preventDefault();
-    
-    if (!newTodoTitle.trim()) return;
+    if (!newTask.trim() || !user) return;
     
     try {
       const { data, error } = await supabase
         .from('todos')
-        .insert({
-          title: newTodoTitle,
-          completed: false,
-          priority: 'medium',
-        })
+        .insert([
+          {
+            title: newTask,
+            priority,
+            user_id: user.id
+          }
+        ])
         .select()
         .single();
       
       if (error) throw error;
       
-      setTodos([data, ...todos]);
-      setNewTodoTitle("");
+      setTodos([data as Todo, ...todos]);
+      setNewTask("");
+      setPriority("medium");
+    } catch (error: any) {
       toast({
-        title: "Task Added",
-        description: "Your new task has been added to the list",
-      });
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to add todo";
-      toast({
-        variant: "destructive",
-        title: "Failed to add task",
-        description: errorMessage,
+        title: "Error",
+        description: error.message || "Failed to add task",
+        variant: "destructive"
       });
     }
   };
 
-  const toggleTodo = async (id: string, completed: boolean) => {
+  const toggleTodoStatus = async (id: string, completed: boolean) => {
     try {
       const { data, error } = await supabase
         .from('todos')
@@ -95,13 +100,12 @@ export default function TodoList() {
       
       if (error) throw error;
       
-      setTodos(todos.map(todo => todo.id === id ? data : todo));
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to update task";
+      setTodos(todos.map(todo => (todo.id === id ? (data as Todo) : todo)));
+    } catch (error: any) {
       toast({
-        variant: "destructive",
-        title: "Failed to update task",
-        description: errorMessage,
+        title: "Error",
+        description: error.message || "Failed to update task",
+        variant: "destructive"
       });
     }
   };
@@ -117,183 +121,169 @@ export default function TodoList() {
       
       setTodos(todos.filter(todo => todo.id !== id));
       toast({
-        title: "Task Deleted",
-        description: "The task has been removed from your list",
+        title: "Task deleted",
+        description: "The task has been removed."
       });
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to delete task";
+    } catch (error: any) {
       toast({
-        variant: "destructive",
-        title: "Failed to delete task",
-        description: errorMessage,
+        title: "Error",
+        description: error.message || "Failed to delete task",
+        variant: "destructive"
       });
     }
   };
 
-  const getPriorityColor = (priority: string) => {
-    switch (priority) {
-      case 'high':
-        return 'bg-red-100 text-red-800 dark:bg-red-900/20 dark:text-red-400';
-      case 'medium':
-        return 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/20 dark:text-yellow-400';
-      case 'low':
-        return 'bg-blue-100 text-blue-800 dark:bg-blue-900/20 dark:text-blue-400';
-      default:
-        return 'bg-gray-100 text-gray-800 dark:bg-gray-800/20 dark:text-gray-400';
-    }
-  };
-
-  const cyclePriority = async (id: string, currentPriority: 'low' | 'medium' | 'high') => {
-    const priorities: ('low' | 'medium' | 'high')[] = ['low', 'medium', 'high'];
-    const currentIndex = priorities.indexOf(currentPriority);
-    const nextPriority = priorities[(currentIndex + 1) % priorities.length];
-    
+  const updatePriority = async (id: string, newPriority: string) => {
     try {
       const { data, error } = await supabase
         .from('todos')
-        .update({ priority: nextPriority })
+        .update({ priority: newPriority })
         .eq('id', id)
         .select()
         .single();
       
       if (error) throw error;
       
-      setTodos(todos.map(todo => todo.id === id ? data : todo));
-    } catch (err) {
-      const errorMessage = err instanceof Error ? err.message : "Failed to update priority";
+      setTodos(todos.map(todo => (todo.id === id ? (data as Todo) : todo)));
+    } catch (error: any) {
       toast({
-        variant: "destructive",
-        title: "Failed to update priority",
-        description: errorMessage,
+        title: "Error",
+        description: error.message || "Failed to update priority",
+        variant: "destructive"
       });
     }
   };
 
-  if (isLoading) {
-    return (
-      <div className="space-y-4">
-        {[1, 2, 3, 4, 5].map((i) => (
-          <Card key={i} className="animate-pulse">
-            <CardContent className="flex items-center justify-between p-4 h-12 bg-secondary/40" />
-          </Card>
-        ))}
-      </div>
-    );
-  }
+  // Helper function to get priority color
+  const getPriorityColor = (priority: string) => {
+    switch (priority) {
+      case 'high':
+        return 'text-red-500';
+      case 'medium':
+        return 'text-yellow-500';
+      case 'low':
+        return 'text-green-500';
+      default:
+        return 'text-gray-500';
+    }
+  };
 
-  if (error) {
+  const renderPriorityFlag = (priority: string) => {
+    return <Flag className={`${getPriorityColor(priority)}`} size={16} />;
+  };
+
+  if (loading) {
     return (
-      <div className="text-center py-12">
-        <p className="text-destructive mb-4">{error}</p>
-        <Button 
-          onClick={() => fetchTodos()}
-          variant="outline"
-        >
-          Try Again
-        </Button>
+      <div className="flex justify-center my-12">
+        <div className="h-8 w-8 border-4 border-primary/30 border-t-primary rounded-full animate-spin"></div>
       </div>
     );
   }
 
   return (
     <div>
-      <div className="flex justify-between items-center mb-6">
-        <h2 className="text-xl font-semibold">Daily To-Do List</h2>
+      <div className="mb-6">
+        <h2 className="text-2xl font-bold mb-4">To-Do List</h2>
         
-        {todos.length > 0 && todos.some(todo => todo.completed) && (
-          <Button 
-            variant="outline"
-            size="sm"
-            className="flex items-center gap-1"
-            onClick={async () => {
-              try {
-                const { error } = await supabase
-                  .from('todos')
-                  .delete()
-                  .eq('completed', true);
-                
-                if (error) throw error;
-                
-                setTodos(todos.filter(todo => !todo.completed));
-                toast({
-                  title: "Completed Tasks Cleared",
-                  description: "All completed tasks have been removed",
-                });
-              } catch (err) {
-                const errorMessage = err instanceof Error ? err.message : "Failed to clear tasks";
-                toast({
-                  variant: "destructive",
-                  title: "Failed to clear tasks",
-                  description: errorMessage,
-                });
-              }
-            }}
-          >
-            <CheckCheck size={14} />
-            Clear Completed
-          </Button>
-        )}
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">Add New Task</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={addTodo} className="flex flex-col sm:flex-row gap-3">
+              <Input 
+                value={newTask}
+                onChange={(e) => setNewTask(e.target.value)}
+                placeholder="Enter a new task..."
+                className="flex-grow"
+              />
+              <Select value={priority} onValueChange={setPriority}>
+                <SelectTrigger className="w-full sm:w-40">
+                  <SelectValue placeholder="Priority" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="low">Low</SelectItem>
+                  <SelectItem value="medium">Medium</SelectItem>
+                  <SelectItem value="high">High</SelectItem>
+                </SelectContent>
+              </Select>
+              <Button type="submit" className="flex items-center gap-2">
+                <PlusCircle size={16} />
+                <span>Add</span>
+              </Button>
+            </form>
+          </CardContent>
+        </Card>
       </div>
 
-      <form onSubmit={addTodo} className="mb-6 flex gap-2">
-        <Input
-          placeholder="Add a new task..."
-          value={newTodoTitle}
-          onChange={(e) => setNewTodoTitle(e.target.value)}
-          className="flex-1"
-        />
-        <Button type="submit" className="flex items-center gap-1">
-          <Plus size={16} />
-          Add
-        </Button>
-      </form>
-
       {todos.length === 0 ? (
-        <div className="text-center py-12 bg-secondary/20 rounded-lg">
-          <CheckSquare className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-          <p className="text-muted-foreground mb-4">Your to-do list is empty. Add your first task to get started.</p>
-        </div>
+        <Card>
+          <CardContent className="flex flex-col items-center justify-center py-10">
+            <p className="text-center text-muted-foreground mb-4">
+              You don't have any tasks yet.
+            </p>
+          </CardContent>
+        </Card>
       ) : (
-        <div className="space-y-2">
-          {todos.map((todo) => (
-            <Card 
-              key={todo.id} 
-              className={`transition-colors ${todo.completed ? 'bg-muted/50' : ''}`}
-            >
-              <CardContent className="p-3 flex items-center justify-between">
-                <div className="flex items-center gap-3 flex-1">
-                  <Checkbox 
-                    checked={todo.completed}
-                    onCheckedChange={() => toggleTodo(todo.id, todo.completed)}
-                    className="h-5 w-5"
-                  />
-                  <span 
-                    className={`flex-1 ${todo.completed ? 'line-through text-muted-foreground' : ''}`}
-                  >
-                    {todo.title}
-                  </span>
-                </div>
+        <div className="space-y-4">
+          {todos.map(todo => (
+            <Card key={todo.id} className={`transition-opacity ${todo.completed ? 'opacity-50' : ''}`}>
+              <CardContent className="p-4 flex items-start gap-4">
+                <button
+                  onClick={() => toggleTodoStatus(todo.id, todo.completed)}
+                  className="mt-1.5 flex-shrink-0"
+                >
+                  {todo.completed ? (
+                    <CheckCircle className="text-green-500" size={18} />
+                  ) : (
+                    <Circle className="text-gray-400 hover:text-gray-600" size={18} />
+                  )}
+                </button>
                 
-                <div className="flex items-center gap-2">
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className={`h-7 px-2 text-xs rounded-full ${getPriorityColor(todo.priority)}`}
-                    onClick={() => cyclePriority(todo.id, todo.priority)}
-                  >
-                    <CircleEllipsis size={12} className="mr-1" />
-                    {todo.priority}
-                  </Button>
-                  
-                  <Button
-                    size="sm"
-                    variant="ghost"
-                    className="h-7 w-7 p-0 text-destructive"
-                    onClick={() => deleteTodo(todo.id)}
-                  >
-                    <Trash size={14} />
-                    <span className="sr-only">Delete</span>
-                  </Button>
+                <div className="flex-grow">
+                  <p className={`${todo.completed ? 'line-through text-muted-foreground' : ''}`}>
+                    {todo.title}
+                  </p>
+                  <div className="flex items-center justify-between mt-3">
+                    <Select 
+                      defaultValue={todo.priority} 
+                      onValueChange={(value) => updatePriority(todo.id, value)}
+                    >
+                      <SelectTrigger className="w-32 h-8 text-xs">
+                        <SelectValue placeholder="Priority" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="low">
+                          <div className="flex items-center gap-2">
+                            {renderPriorityFlag('low')}
+                            <span>Low</span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="medium">
+                          <div className="flex items-center gap-2">
+                            {renderPriorityFlag('medium')}
+                            <span>Medium</span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="high">
+                          <div className="flex items-center gap-2">
+                            {renderPriorityFlag('high')}
+                            <span>High</span>
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                    
+                    <div className="flex gap-2">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => deleteTodo(todo.id)}
+                      >
+                        <Trash size={16} />
+                      </Button>
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
