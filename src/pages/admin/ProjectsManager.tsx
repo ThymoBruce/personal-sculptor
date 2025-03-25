@@ -148,12 +148,16 @@ export default function ProjectsManager() {
 
     try {
       const userId = user?.id || "unknown";
+      
+      // Fix the empty category_id issue by replacing empty string with null
       const projectData = {
         ...formData,
+        // Convert empty category_id to null to avoid UUID parsing error
+        category_id: formData.category_id ? formData.category_id : null,
         author_id: userId,
         created_by: userId,
         modified_by: userId,
-        is_deleted: false // Add the missing required field
+        is_deleted: false
       };
 
       let response;

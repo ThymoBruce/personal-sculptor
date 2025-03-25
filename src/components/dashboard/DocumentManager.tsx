@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
@@ -126,29 +125,20 @@ export default function DocumentManager() {
     }
   };
 
-  const downloadDocument = (document: Document) => {
-    try {
-      // Create an anchor element and set properties
-      const link = document.createElement('a');
-      link.href = document.file_url;
-      link.download = document.name;
-      
-      // Append to the document
-      document.body.appendChild(link);
-      
-      // Trigger click
-      link.click();
-      
-      // Clean up
-      document.body.removeChild(link);
-    } catch (error) {
-      console.error("Error downloading document:", error);
-      toast({
-        title: "Error",
-        description: "Failed to download document",
-        variant: "destructive",
-      });
-    }
+  const handleDownload = (document: Document) => {
+    // Create an anchor element to trigger the download
+    const link = window.document.createElement('a');
+    link.href = document.file_url;
+    link.download = document.name;
+    
+    // Append to the DOM temporarily
+    window.document.body.appendChild(link);
+    
+    // Trigger the download
+    link.click();
+    
+    // Clean up
+    window.document.body.removeChild(link);
   };
 
   const deleteDocument = async (id: string) => {
@@ -267,7 +257,7 @@ export default function DocumentManager() {
                           <Button
                             variant="ghost"
                             size="sm"
-                            onClick={() => downloadDocument(doc)}
+                            onClick={() => handleDownload(doc)}
                           >
                             <Download size={16} />
                           </Button>
