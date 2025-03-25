@@ -1,9 +1,8 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Globe, FileText, CheckSquare, LayoutDashboard, Book, Briefcase, Tag, Music } from "lucide-react";
+import { Globe, FileText, CheckSquare, LayoutDashboard, Book, Briefcase, Tag, Music, Users } from "lucide-react";
 import WebsiteList from "@/components/dashboard/WebsiteList";
 import DocumentManager from "@/components/dashboard/DocumentManager";
 import TodoList from "@/components/dashboard/TodoList";
@@ -102,6 +101,12 @@ export default function Dashboard() {
                 description="Manage your music and albums"
                 icon={<Music className="h-6 w-6" />}
                 linkTo={() => setActiveTab("music")}
+              />
+              <DashboardCard 
+                title="Admin" 
+                description="Manage application settings and content"
+                icon={<Users className="h-6 w-6" />}
+                linkTo={() => navigate("/admin/projects")}
               />
             </div>
           </TabsContent>
