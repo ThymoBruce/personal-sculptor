@@ -12,7 +12,7 @@ const MusicPage = () => {
   }, []);
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="container mx-auto px-4 py-8 pt-24">
       <h1 className="text-3xl font-bold mb-6">Music</h1>
       <p className="text-gray-600 mb-8">
         Check out my latest music releases and projects.

@@ -55,7 +55,7 @@ export default function CategoriesManager() {
   };
   
   return (
-    <div className="container mx-auto py-8">
+    <div className="container mx-auto py-8 pt-24">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold">Categories Manager</h1>
         <Button onClick={handleAddNew} className="flex items-center gap-2">
