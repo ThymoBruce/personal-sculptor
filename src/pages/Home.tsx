@@ -2,8 +2,36 @@
 import { ArrowRight, User, Briefcase, GraduationCap, Award, Music, Download, BookOpen } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import { useQuery } from "@tanstack/react-query";
+import { getBlogPosts, getSongs } from "@/lib/api-supabase";
 
 export default function Home() {
+  // Fetch latest blog posts
+  const { data: blogPosts } = useQuery({
+    queryKey: ['blogPosts'],
+    queryFn: async () => {
+      const response = await getBlogPosts();
+      if (response.error) return [];
+      return response.data || [];
+    }
+  });
+
+  // Fetch latest songs
+  const { data: songs } = useQuery({
+    queryKey: ['songs'],
+    queryFn: async () => {
+      const response = await getSongs();
+      if (response.error) return [];
+      return response.data || [];
+    }
+  });
+
+  // Get the 2 latest blog posts
+  const latestBlogPosts = blogPosts?.slice(0, 2) || [];
+  
+  // Get the 2 latest songs
+  const latestSongs = songs?.slice(0, 2) || [];
+
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
@@ -143,25 +171,37 @@ export default function Home() {
               </div>
               
               <div className="space-y-4">
-                <div className="flex items-center p-4 border border-border rounded-lg hover:bg-secondary/20 transition-colors">
-                  <div className="w-12 h-12 bg-secondary/50 rounded-md flex items-center justify-center mr-4">
-                    <Music size={20} className="text-primary" />
-                  </div>
-                  <div>
-                    <h4 className="font-medium">Midnight Dreams</h4>
-                    <p className="text-sm text-muted-foreground">Electronic • 2023</p>
-                  </div>
-                </div>
-                
-                <div className="flex items-center p-4 border border-border rounded-lg hover:bg-secondary/20 transition-colors">
-                  <div className="w-12 h-12 bg-secondary/50 rounded-md flex items-center justify-center mr-4">
-                    <Music size={20} className="text-primary" />
-                  </div>
-                  <div>
-                    <h4 className="font-medium">Coastal Waves</h4>
-                    <p className="text-sm text-muted-foreground">Ambient • 2023</p>
-                  </div>
-                </div>
+                {latestSongs.length > 0 ? (
+                  latestSongs.map((song) => (
+                    <div key={song.id} className="flex items-center p-4 border border-border rounded-lg hover:bg-secondary/20 transition-colors">
+                      <div className="w-12 h-12 bg-secondary/50 rounded-md flex items-center justify-center mr-4 overflow-hidden">
+                        {song.cover_image ? (
+                          <img src={song.cover_image} alt={song.title} className="w-full h-full object-cover" />
+                        ) : (
+                          <Music size={20} className="text-primary" />
+                        )}
+                      </div>
+                      <div>
+                        <h4 className="font-medium">{song.title}</h4>
+                        <p className="text-sm text-muted-foreground">
+                          {song.producer || 'Electronic'} • {new Date(song.release_date).getFullYear()}
+                        </p>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  [1, 2].map((i) => (
+                    <div key={i} className="flex items-center p-4 border border-border rounded-lg hover:bg-secondary/20 transition-colors">
+                      <div className="w-12 h-12 bg-secondary/50 rounded-md flex items-center justify-center mr-4">
+                        <Music size={20} className="text-primary" />
+                      </div>
+                      <div>
+                        <h4 className="font-medium">{i === 1 ? "Midnight Dreams" : "Coastal Waves"}</h4>
+                        <p className="text-sm text-muted-foreground">{i === 1 ? "Electronic" : "Ambient"} • 2023</p>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
             
@@ -175,29 +215,63 @@ export default function Home() {
               </div>
               
               <div className="space-y-4">
-                <Link to="/blog/journey-into-full-stack-development" className="block p-4 border border-border rounded-lg hover:bg-secondary/20 transition-colors">
-                  <h4 className="font-medium">My Journey into Full-Stack Development</h4>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    A reflection on my path to becoming a Full-Stack Developer and the lessons learned along the way.
-                  </p>
-                  <div className="flex items-center mt-2">
-                    <span className="text-xs text-muted-foreground">November 15, 2023</span>
-                    <span className="mx-2 text-muted-foreground">•</span>
-                    <span className="text-xs bg-secondary/50 px-2 py-0.5 rounded-full">Career</span>
-                  </div>
-                </Link>
-                
-                <Link to="/blog/intersection-music-production-coding" className="block p-4 border border-border rounded-lg hover:bg-secondary/20 transition-colors">
-                  <h4 className="font-medium">The Intersection of Music Production and Coding</h4>
-                  <p className="text-sm text-muted-foreground mt-1">
-                    How my background in music production has influenced my approach to software development.
-                  </p>
-                  <div className="flex items-center mt-2">
-                    <span className="text-xs text-muted-foreground">January 5, 2024</span>
-                    <span className="mx-2 text-muted-foreground">•</span>
-                    <span className="text-xs bg-secondary/50 px-2 py-0.5 rounded-full">Music</span>
-                  </div>
-                </Link>
+                {latestBlogPosts.length > 0 ? (
+                  latestBlogPosts.map((post) => (
+                    <Link 
+                      key={post.id} 
+                      to={`/blog/${post.slug}`} 
+                      className="block p-4 border border-border rounded-lg hover:bg-secondary/20 transition-colors"
+                    >
+                      <h4 className="font-medium">{post.title}</h4>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        {post.excerpt}
+                      </p>
+                      <div className="flex items-center mt-2">
+                        <span className="text-xs text-muted-foreground">
+                          {new Date(post.published_date).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                          })}
+                        </span>
+                        {post.tags && post.tags.length > 0 && (
+                          <>
+                            <span className="mx-2 text-muted-foreground">•</span>
+                            <span className="text-xs bg-secondary/50 px-2 py-0.5 rounded-full">
+                              {post.tags[0]}
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    </Link>
+                  ))
+                ) : (
+                  <>
+                    <Link to="/blog/journey-into-full-stack-development" className="block p-4 border border-border rounded-lg hover:bg-secondary/20 transition-colors">
+                      <h4 className="font-medium">My Journey into Full-Stack Development</h4>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        A reflection on my path to becoming a Full-Stack Developer and the lessons learned along the way.
+                      </p>
+                      <div className="flex items-center mt-2">
+                        <span className="text-xs text-muted-foreground">November 15, 2023</span>
+                        <span className="mx-2 text-muted-foreground">•</span>
+                        <span className="text-xs bg-secondary/50 px-2 py-0.5 rounded-full">Career</span>
+                      </div>
+                    </Link>
+                    
+                    <Link to="/blog/intersection-music-production-coding" className="block p-4 border border-border rounded-lg hover:bg-secondary/20 transition-colors">
+                      <h4 className="font-medium">The Intersection of Music Production and Coding</h4>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        How my background in music production has influenced my approach to software development.
+                      </p>
+                      <div className="flex items-center mt-2">
+                        <span className="text-xs text-muted-foreground">January 5, 2024</span>
+                        <span className="mx-2 text-muted-foreground">•</span>
+                        <span className="text-xs bg-secondary/50 px-2 py-0.5 rounded-full">Music</span>
+                      </div>
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </div>

@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -43,7 +44,7 @@ export default function Dashboard() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-7 max-w-3xl mx-auto mb-8">
+          <TabsList className="grid w-full grid-cols-6 max-w-3xl mx-auto mb-8">
             <TabsTrigger value="dashboard" className="flex items-center gap-2">
               <LayoutDashboard size={16} />
               <span className="hidden sm:inline">Dashboard</span>
@@ -59,10 +60,6 @@ export default function Dashboard() {
             <TabsTrigger value="todos" className="flex items-center gap-2">
               <CheckSquare size={16} />
               <span className="hidden sm:inline">To-Do List</span>
-            </TabsTrigger>
-            <TabsTrigger value="admin" className="flex items-center gap-2">
-              <Briefcase size={16} />
-              <span className="hidden sm:inline">Admin</span>
             </TabsTrigger>
             <TabsTrigger value="categories" className="flex items-center gap-2">
               <Tag size={16} />
@@ -95,12 +92,6 @@ export default function Dashboard() {
                 linkTo={() => setActiveTab("todos")}
               />
               <DashboardCard 
-                title="Admin" 
-                description="Manage your content and settings"
-                icon={<Briefcase className="h-6 w-6" />}
-                linkTo={() => setActiveTab("admin")}
-              />
-              <DashboardCard 
                 title="Categories" 
                 description="Manage categories for projects and content"
                 icon={<Tag className="h-6 w-6" />}
@@ -125,42 +116,6 @@ export default function Dashboard() {
           
           <TabsContent value="todos">
             <TodoList />
-          </TabsContent>
-
-          <TabsContent value="admin">
-            <div className="space-y-6">
-              <div className="bg-card border rounded-lg shadow-sm p-6">
-                <h2 className="text-2xl font-bold mb-4">Admin Panel</h2>
-                <p className="text-muted-foreground mb-6">Manage your content and settings</p>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                  <AdminCard 
-                    title="Projects" 
-                    description="Create and manage your portfolio projects"
-                    icon={<Briefcase className="h-6 w-6" />}
-                    href="/admin/projects"
-                  />
-                  <AdminCard 
-                    title="Blog Posts" 
-                    description="Write and publish blog content"
-                    icon={<Book className="h-6 w-6" />}
-                    href="/admin/blog"
-                  />
-                  <AdminCard 
-                    title="Categories" 
-                    description="Manage categories for projects and content"
-                    icon={<Tag className="h-6 w-6" />}
-                    href="/admin/categories"
-                  />
-                  <AdminCard 
-                    title="Music" 
-                    description="Upload and manage your music"
-                    icon={<Music className="h-6 w-6" />}
-                    href="/admin/music"
-                  />
-                </div>
-              </div>
-            </div>
           </TabsContent>
           
           <TabsContent value="categories">
@@ -219,32 +174,5 @@ function DashboardCard({ title, description, icon, linkTo }: DashboardCardProps)
       </div>
       <p className="text-muted-foreground">{description}</p>
     </div>
-  );
-}
-
-interface AdminCardProps {
-  title: string;
-  description: string;
-  icon: React.ReactNode;
-  href: string;
-}
-
-function AdminCard({ title, description, icon, href }: AdminCardProps) {
-  return (
-    <Link 
-      to={href}
-      className="bg-card border rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow block"
-    >
-      <div className="flex items-center gap-4 mb-3">
-        <div className="p-2 bg-primary/10 rounded-full text-primary">
-          {icon}
-        </div>
-        <h3 className="text-xl font-medium">{title}</h3>
-      </div>
-      <p className="text-muted-foreground mb-4">{description}</p>
-      <Button variant="outline" className="w-full">
-        Manage {title}
-      </Button>
-    </Link>
   );
 }

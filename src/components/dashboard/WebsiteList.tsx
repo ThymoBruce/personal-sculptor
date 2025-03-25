@@ -132,8 +132,10 @@ export default function WebsiteList() {
             <DialogHeader>
               <DialogTitle>{selectedLink ? "Edit Link" : "Add New Link"}</DialogTitle>
             </DialogHeader>
-            {isEditing && selectedLink && (
-              <WebsiteForm onClose={closeEditForm} initialData={selectedLink} />
+            {isEditing && selectedLink ? (
+              <WebsiteForm closeForm={closeEditForm} initialData={selectedLink} />
+            ) : (
+              <WebsiteForm closeForm={() => setIsDialogOpen(false)} />
             )}
           </DialogContent>
         </Dialog>
