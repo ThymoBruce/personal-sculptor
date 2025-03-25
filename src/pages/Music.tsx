@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { getSongs } from "@/lib/api";
 import { Song } from "@/lib/types";
@@ -38,6 +37,14 @@ export default function Music() {
     const minutes = Math.floor(seconds / 60);
     const remainingSeconds = seconds % 60;
     return `${minutes}:${remainingSeconds.toString().padStart(2, "0")}`;
+  };
+
+  // Switch to full player mode
+  const handleExpandClick = () => {
+    const fullPlayerTab = document.querySelector('[data-state="inactive"][data-value="full-player"]');
+    if (fullPlayerTab instanceof HTMLElement) {
+      fullPlayerTab.click();
+    }
   };
 
   return (

@@ -1,57 +1,40 @@
 
+import React from "react";
+import { Badge } from "@/components/ui/badge";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Project } from "@/lib/types";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Link } from "react-router-dom";
-import { ArrowRight, Calendar } from "lucide-react";
 
 interface ProjectCardProps {
   project: Project;
 }
 
-export default function ProjectCard({ project }: ProjectCardProps) {
-  const formattedDate = new Date(project.created_at).toLocaleDateString("en-US", {
-    year: "numeric",
-    month: "short",
-  });
-
-  // Handle potential missing category safely
-  const categoryName = project.category?.name || 'Uncategorized';
-
+const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
   return (
-    <Card className="h-full">
+    <Card>
       <CardHeader>
-        <div className="flex justify-between items-start mb-2">
-          <span className="text-xs font-medium bg-secondary/50 text-secondary-foreground px-2.5 py-0.5 rounded">
-            {categoryName}
-          </span>
-          <div className="flex items-center text-muted-foreground text-xs">
-            <Calendar size={12} className="mr-1" />
-            {formattedDate}
-          </div>
-        </div>
-        <CardTitle className="line-clamp-1">{project.name}</CardTitle>
-        <CardDescription className="line-clamp-2 mt-1">
-          {project.description}
-        </CardDescription>
+        <CardTitle>{project.name}</CardTitle>
+        <CardDescription>{project.category?.name || "Uncategorized"}</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="flex flex-wrap gap-1 mb-4">
-          {project.tags && project.tags.map((tag) => (
-            <span
-              key={tag}
-              className="text-xs bg-primary/5 text-primary-foreground px-2 py-0.5 rounded"
-            >
+        <p className="mb-4">{project.description}</p>
+        <div className="flex flex-wrap gap-2">
+          {project.tags?.map((tag, index) => (
+            <Badge key={index} variant="secondary" className="text-xs">
               {tag}
-            </span>
+            </Badge>
           ))}
         </div>
-        <Link 
-          to={`/projects/${project.id}`}
-          className="inline-flex items-center text-sm font-medium text-primary mt-2 hover:underline"
-        >
-          View Project <ArrowRight size={14} className="ml-1" />
-        </Link>
       </CardContent>
+      <CardFooter className="flex justify-between">
+        <span className="text-sm text-muted-foreground">
+          {new Date(project.created_at).toLocaleDateString()}
+        </span>
+        <Badge variant={project.status === "published" ? "default" : "outline"}>
+          {project.status}
+        </Badge>
+      </CardFooter>
     </Card>
   );
-}
+};
+
+export default ProjectCard;

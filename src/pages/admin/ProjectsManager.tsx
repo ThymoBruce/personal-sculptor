@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { ArrowLeft, Plus, Trash, Pencil, BookOpen } from "lucide-react";
@@ -151,7 +152,8 @@ export default function ProjectsManager() {
         ...formData,
         author_id: userId,
         created_by: userId,
-        modified_by: userId
+        modified_by: userId,
+        is_deleted: false // Add the missing required field
       };
 
       let response;
@@ -202,7 +204,7 @@ export default function ProjectsManager() {
         <Tabs defaultValue="list" className="w-full">
           <TabsList>
             <TabsTrigger value="list">Projects List</TabsTrigger>
-            <TabsTrigger value="form">{selectedProject ? 'Edit Project' : 'Add Project'}</TabsTrigger>
+            <TabsTrigger value="form" data-value="form">{selectedProject ? 'Edit Project' : 'Add Project'}</TabsTrigger>
           </TabsList>
 
           <TabsContent value="list" className="mt-6">

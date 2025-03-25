@@ -3,10 +3,12 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Globe, FileText, CheckSquare, LayoutDashboard } from "lucide-react";
+import { Globe, FileText, CheckSquare, LayoutDashboard, Book, Briefcase } from "lucide-react";
 import WebsiteList from "@/components/dashboard/WebsiteList";
 import DocumentManager from "@/components/dashboard/DocumentManager";
 import TodoList from "@/components/dashboard/TodoList";
+import { Link } from "react-router-dom";
+import { Button } from "@/components/ui/button";
 
 export default function Dashboard() {
   const { user, loading } = useAuth();
@@ -42,7 +44,7 @@ export default function Dashboard() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-4 max-w-md mx-auto mb-8">
+          <TabsList className="grid w-full grid-cols-5 max-w-md mx-auto mb-8">
             <TabsTrigger value="dashboard" className="flex items-center gap-2">
               <LayoutDashboard size={16} />
               <span className="hidden sm:inline">Dashboard</span>
@@ -58,6 +60,10 @@ export default function Dashboard() {
             <TabsTrigger value="todos" className="flex items-center gap-2">
               <CheckSquare size={16} />
               <span className="hidden sm:inline">To-Do List</span>
+            </TabsTrigger>
+            <TabsTrigger value="admin" className="flex items-center gap-2">
+              <Briefcase size={16} />
+              <span className="hidden sm:inline">Admin</span>
             </TabsTrigger>
           </TabsList>
 
@@ -95,6 +101,30 @@ export default function Dashboard() {
           <TabsContent value="todos">
             <TodoList />
           </TabsContent>
+
+          <TabsContent value="admin">
+            <div className="space-y-6">
+              <div className="bg-card border rounded-lg shadow-sm p-6">
+                <h2 className="text-2xl font-bold mb-4">Admin Panel</h2>
+                <p className="text-muted-foreground mb-6">Manage your content and settings</p>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  <AdminCard 
+                    title="Projects" 
+                    description="Create and manage your portfolio projects"
+                    icon={<Briefcase className="h-6 w-6" />}
+                    href="/admin/projects"
+                  />
+                  <AdminCard 
+                    title="Blog Posts" 
+                    description="Write and publish blog content"
+                    icon={<Book className="h-6 w-6" />}
+                    href="/admin/blog"
+                  />
+                </div>
+              </div>
+            </div>
+          </TabsContent>
         </Tabs>
       </div>
     </div>
@@ -122,5 +152,32 @@ function DashboardCard({ title, description, icon, linkTo }: DashboardCardProps)
       </div>
       <p className="text-muted-foreground">{description}</p>
     </div>
+  );
+}
+
+interface AdminCardProps {
+  title: string;
+  description: string;
+  icon: React.ReactNode;
+  href: string;
+}
+
+function AdminCard({ title, description, icon, href }: AdminCardProps) {
+  return (
+    <Link 
+      to={href}
+      className="bg-card border rounded-lg shadow-sm p-6 hover:shadow-md transition-shadow block"
+    >
+      <div className="flex items-center gap-4 mb-3">
+        <div className="p-2 bg-primary/10 rounded-full text-primary">
+          {icon}
+        </div>
+        <h3 className="text-xl font-medium">{title}</h3>
+      </div>
+      <p className="text-muted-foreground mb-4">{description}</p>
+      <Button variant="outline" className="w-full">
+        Manage {title}
+      </Button>
+    </Link>
   );
 }

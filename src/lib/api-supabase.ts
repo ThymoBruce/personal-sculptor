@@ -156,7 +156,9 @@ export async function getProjects(): Promise<ApiResponse<Project[]>> {
       return {
         ...project,
         status: project.status as 'draft' | 'published',
-        category: project.categories as Category
+        category: project.categories && (typeof project.categories !== 'string') 
+          ? project.categories as unknown as Category 
+          : null
       };
     }) as Project[];
     
@@ -185,7 +187,9 @@ export async function getProjectById(id: string): Promise<ApiResponse<Project>> 
     const typedData = {
       ...data,
       status: data.status as 'draft' | 'published',
-      category: data.categories as Category
+      category: data.categories && (typeof data.categories !== 'string')
+        ? data.categories as unknown as Category
+        : null
     } as Project;
     
     return { data: typedData };
