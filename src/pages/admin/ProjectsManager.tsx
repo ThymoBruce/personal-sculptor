@@ -154,15 +154,12 @@ export default function ProjectsManager() {
     try {
       const userId = user?.id || "unknown";
       
-      const validCategoryId = formData.category_id || (categories.length > 0 ? categories[0].id : null);
-      
-      if (!validCategoryId) {
+      if (!formData.category_id) {
         throw new Error("A category must be selected. Please create a category first if none exist.");
       }
       
       const projectData = {
         ...formData,
-        category_id: validCategoryId,
         author_id: userId,
         created_by: userId,
         modified_by: userId,
@@ -408,4 +405,3 @@ export default function ProjectsManager() {
     </div>
   );
 }
-

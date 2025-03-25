@@ -156,9 +156,7 @@ export async function getProjects(): Promise<ApiResponse<Project[]>> {
       return {
         ...project,
         status: project.status as 'draft' | 'published',
-        category: project.categories && (typeof project.categories !== 'string') 
-          ? project.categories as unknown as Category 
-          : null
+        category: project.categories as unknown as Category
       };
     }) as Project[];
     
@@ -187,9 +185,7 @@ export async function getProjectById(id: string): Promise<ApiResponse<Project>> 
     const typedData = {
       ...data,
       status: data.status as 'draft' | 'published',
-      category: data.categories && (typeof data.categories !== 'string')
-        ? data.categories as unknown as Category
-        : null
+      category: data.categories as unknown as Category
     } as Project;
     
     return { data: typedData };
@@ -205,6 +201,11 @@ export async function getProjectById(id: string): Promise<ApiResponse<Project>> 
 
 export async function createProject(project: Omit<Project, 'id' | 'created_at' | 'updated_at'>): Promise<ApiResponse<Project>> {
   try {
+    // Ensure category_id is valid before creating the project
+    if (!project.category_id) {
+      throw new Error("Category ID is required");
+    }
+
     const { data, error } = await supabase
       .from('projects')
       .insert([project])
