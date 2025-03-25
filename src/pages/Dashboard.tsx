@@ -1,9 +1,8 @@
-
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Globe, FileText, CheckSquare, LayoutDashboard, Book, Briefcase, Tag } from "lucide-react";
+import { Globe, FileText, CheckSquare, LayoutDashboard, Book, Briefcase, Tag, Music } from "lucide-react";
 import WebsiteList from "@/components/dashboard/WebsiteList";
 import DocumentManager from "@/components/dashboard/DocumentManager";
 import TodoList from "@/components/dashboard/TodoList";
@@ -44,7 +43,7 @@ export default function Dashboard() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-6 max-w-2xl mx-auto mb-8">
+          <TabsList className="grid w-full grid-cols-7 max-w-3xl mx-auto mb-8">
             <TabsTrigger value="dashboard" className="flex items-center gap-2">
               <LayoutDashboard size={16} />
               <span className="hidden sm:inline">Dashboard</span>
@@ -68,6 +67,10 @@ export default function Dashboard() {
             <TabsTrigger value="categories" className="flex items-center gap-2">
               <Tag size={16} />
               <span className="hidden sm:inline">Categories</span>
+            </TabsTrigger>
+            <TabsTrigger value="music" className="flex items-center gap-2">
+              <Music size={16} />
+              <span className="hidden sm:inline">Music</span>
             </TabsTrigger>
           </TabsList>
 
@@ -102,6 +105,12 @@ export default function Dashboard() {
                 description="Manage categories for projects and content"
                 icon={<Tag className="h-6 w-6" />}
                 linkTo={() => setActiveTab("categories")}
+              />
+              <DashboardCard 
+                title="Music" 
+                description="Manage your music and albums"
+                icon={<Music className="h-6 w-6" />}
+                linkTo={() => setActiveTab("music")}
               />
             </div>
           </TabsContent>
@@ -143,6 +152,12 @@ export default function Dashboard() {
                     icon={<Tag className="h-6 w-6" />}
                     href="/admin/categories"
                   />
+                  <AdminCard 
+                    title="Music" 
+                    description="Upload and manage your music"
+                    icon={<Music className="h-6 w-6" />}
+                    href="/admin/music"
+                  />
                 </div>
               </div>
             </div>
@@ -157,6 +172,21 @@ export default function Dashboard() {
                 <Link to="/admin/categories">
                   <Button className="w-full sm:w-auto">
                     Go to Categories Manager
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="music">
+            <div className="space-y-6">
+              <div className="bg-card border rounded-lg shadow-sm p-6">
+                <h2 className="text-2xl font-bold mb-4">Music Management</h2>
+                <p className="text-muted-foreground mb-6">Upload and manage your music collections</p>
+                
+                <Link to="/admin/music">
+                  <Button className="w-full sm:w-auto">
+                    Go to Music Manager
                   </Button>
                 </Link>
               </div>
