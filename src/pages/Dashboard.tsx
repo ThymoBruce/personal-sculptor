@@ -5,8 +5,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Globe, FileText, CheckSquare, LayoutDashboard, Book, Briefcase, Tag, Music } from "lucide-react";
 import WebsiteList from "@/components/dashboard/WebsiteList";
-import DocumentManager from "@/components/dashboard/DocumentManager";
-import TodoList from "@/components/dashboard/TodoList";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
@@ -44,7 +42,7 @@ export default function Dashboard() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-6 max-w-3xl mx-auto mb-8">
+          <TabsList className="grid w-full grid-cols-2 max-w-3xl mx-auto mb-8">
             <TabsTrigger value="dashboard" className="flex items-center gap-2">
               <LayoutDashboard size={16} />
               <span className="hidden sm:inline">Dashboard</span>
@@ -52,22 +50,6 @@ export default function Dashboard() {
             <TabsTrigger value="websites" className="flex items-center gap-2">
               <Globe size={16} />
               <span className="hidden sm:inline">Websites</span>
-            </TabsTrigger>
-            <TabsTrigger value="documents" className="flex items-center gap-2">
-              <FileText size={16} />
-              <span className="hidden sm:inline">Documents</span>
-            </TabsTrigger>
-            <TabsTrigger value="todos" className="flex items-center gap-2">
-              <CheckSquare size={16} />
-              <span className="hidden sm:inline">To-Do List</span>
-            </TabsTrigger>
-            <TabsTrigger value="categories" className="flex items-center gap-2">
-              <Tag size={16} />
-              <span className="hidden sm:inline">Categories</span>
-            </TabsTrigger>
-            <TabsTrigger value="music" className="flex items-center gap-2">
-              <Music size={16} />
-              <span className="hidden sm:inline">Music</span>
             </TabsTrigger>
           </TabsList>
 
@@ -83,25 +65,25 @@ export default function Dashboard() {
                 title="Documents" 
                 description="Upload and manage your documents"
                 icon={<FileText className="h-6 w-6" />}
-                linkTo={() => setActiveTab("documents")}
+                linkTo={() => navigate("/admin/documents")}
               />
               <DashboardCard 
                 title="To-Do List" 
                 description="Manage your tasks and stay organized"
                 icon={<CheckSquare className="h-6 w-6" />}
-                linkTo={() => setActiveTab("todos")}
+                linkTo={() => navigate("/admin/todos")}
               />
               <DashboardCard 
                 title="Categories" 
                 description="Manage categories for projects and content"
                 icon={<Tag className="h-6 w-6" />}
-                linkTo={() => setActiveTab("categories")}
+                linkTo={() => navigate("/admin/categories")}
               />
               <DashboardCard 
                 title="Music" 
                 description="Manage your music and albums"
                 icon={<Music className="h-6 w-6" />}
-                linkTo={() => setActiveTab("music")}
+                linkTo={() => navigate("/admin/music")}
               />
               <DashboardCard 
                 title="Blog Posts" 
@@ -120,44 +102,6 @@ export default function Dashboard() {
           
           <TabsContent value="websites">
             <WebsiteList />
-          </TabsContent>
-          
-          <TabsContent value="documents">
-            <DocumentManager />
-          </TabsContent>
-          
-          <TabsContent value="todos">
-            <TodoList />
-          </TabsContent>
-          
-          <TabsContent value="categories">
-            <div className="space-y-6">
-              <div className="bg-card border rounded-lg shadow-sm p-6">
-                <h2 className="text-2xl font-bold mb-4">Categories</h2>
-                <p className="text-muted-foreground mb-6">Manage categories for your projects and content</p>
-                
-                <Link to="/admin/categories">
-                  <Button className="w-full sm:w-auto">
-                    Go to Categories Manager
-                  </Button>
-                </Link>
-              </div>
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="music">
-            <div className="space-y-6">
-              <div className="bg-card border rounded-lg shadow-sm p-6">
-                <h2 className="text-2xl font-bold mb-4">Music Management</h2>
-                <p className="text-muted-foreground mb-6">Upload and manage your music collections</p>
-                
-                <Link to="/admin/music">
-                  <Button className="w-full sm:w-auto">
-                    Go to Music Manager
-                  </Button>
-                </Link>
-              </div>
-            </div>
           </TabsContent>
         </Tabs>
       </div>
