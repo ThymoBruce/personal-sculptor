@@ -9,11 +9,15 @@ interface ProjectCardProps {
 }
 
 const ProjectCard: React.FC<ProjectCardProps> = ({ project }) => {
+  // Get category name safely
+  const categoryName = project.category?.name || 
+                       (project.category_id ? "Unknown Category" : "Uncategorized");
+  
   return (
     <Card>
       <CardHeader>
         <CardTitle>{project.name}</CardTitle>
-        <CardDescription>{project.category?.name || "Uncategorized"}</CardDescription>
+        <CardDescription>{categoryName}</CardDescription>
       </CardHeader>
       <CardContent>
         <p className="mb-4">{project.description}</p>
