@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { ArrowLeft, Plus, Trash, Pencil, BookOpen } from "lucide-react";
@@ -61,6 +60,13 @@ export default function ProjectsManager() {
         throw new Error(categoriesResponse.error.message);
       }
       setCategories(categoriesResponse.data || []);
+      
+      if (categoriesResponse.data && categoriesResponse.data.length > 0 && !formData.category_id) {
+        setFormData(prev => ({
+          ...prev,
+          category_id: categoriesResponse.data[0].id
+        }));
+      }
     } catch (error) {
       toast({
         title: "Error",
@@ -94,7 +100,7 @@ export default function ProjectsManager() {
     setFormData({
       name: "",
       description: "",
-      category_id: "",
+      category_id: categories.length > 0 ? categories[0].id : "",
       status: "draft",
       tags: [],
     });
@@ -131,11 +137,10 @@ export default function ProjectsManager() {
     setFormData({
       name: project.name,
       description: project.description,
-      category_id: project.category_id,
+      category_id: project.category_id || (categories.length > 0 ? categories[0].id : ""),
       status: project.status,
       tags: project.tags || [],
     });
-    // Properly access the DOM element and cast it to HTMLElement to use click method
     const tabTrigger = document.querySelector('[data-value="form"]');
     if (tabTrigger instanceof HTMLElement) {
       tabTrigger.click();
@@ -149,11 +154,15 @@ export default function ProjectsManager() {
     try {
       const userId = user?.id || "unknown";
       
-      // Fix the empty category_id issue by replacing empty string with null
+      const validCategoryId = formData.category_id || (categories.length > 0 ? categories[0].id : null);
+      
+      if (!validCategoryId) {
+        throw new Error("A category must be selected. Please create a category first if none exist.");
+      }
+      
       const projectData = {
         ...formData,
-        // Convert empty category_id to null to avoid UUID parsing error
-        category_id: formData.category_id ? formData.category_id : null,
+        category_id: validCategoryId,
         author_id: userId,
         created_by: userId,
         modified_by: userId,
@@ -253,7 +262,10 @@ export default function ProjectsManager() {
                     {projects.map((project) => (
                       <TableRow key={project.id} className="hover:bg-secondary/20 transition-colors">
                         <TableCell className="font-medium">{project.name}</TableCell>
-                        <TableCell>{project.category_id}</TableCell>
+                        <TableCell>
+                          {project.category?.name || 
+                           (project.category_id ? "Unknown Category" : "Uncategorized")}
+                        </TableCell>
                         <TableCell>{project.status}</TableCell>
                         <TableCell>{new Date(project.created_at).toLocaleDateString()}</TableCell>
                         <TableCell className="text-right">
@@ -303,8 +315,12 @@ export default function ProjectsManager() {
                     </div>
 
                     <div>
-                      <Label htmlFor="category_id">Category</Label>
-                      <Select onValueChange={handleSelectChange} defaultValue={formData.category_id}>
+                      <Label htmlFor="category_id">Category {categories.length === 0 && "(Please create a category first)"}</Label>
+                      <Select 
+                        onValueChange={handleSelectChange} 
+                        value={formData.category_id} 
+                        disabled={categories.length === 0}
+                      >
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder="Select a category" />
                         </SelectTrigger>
@@ -316,11 +332,16 @@ export default function ProjectsManager() {
                           ))}
                         </SelectContent>
                       </Select>
+                      {categories.length === 0 && (
+                        <p className="text-sm text-destructive mt-1">
+                          You need to create at least one category before creating a project.
+                        </p>
+                      )}
                     </div>
 
                     <div>
                       <Label htmlFor="status">Status</Label>
-                      <Select onValueChange={handleStatusChange} defaultValue={formData.status}>
+                      <Select onValueChange={handleStatusChange} value={formData.status}>
                         <SelectTrigger className="w-full">
                           <SelectValue placeholder="Select status" />
                         </SelectTrigger>
@@ -362,7 +383,10 @@ export default function ProjectsManager() {
                     >
                       Cancel
                     </Button>
-                    <Button type="submit" disabled={isSubmitting}>
+                    <Button 
+                      type="submit" 
+                      disabled={isSubmitting || categories.length === 0}
+                    >
                       {isSubmitting ? (
                         <>
                           <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
@@ -384,3 +408,4 @@ export default function ProjectsManager() {
     </div>
   );
 }
+
