@@ -87,15 +87,15 @@ export default function Dashboard() {
               />
               <DashboardCard 
                 title="Blog Posts" 
-                description="Read and manage your blog content"
+                description="Manage your blog content"
                 icon={<Book className="h-6 w-6" />}
-                linkTo={() => navigate("/blog")}
+                linkTo={() => navigate("/admin/blog")}
               />
               <DashboardCard 
                 title="Projects" 
-                description="View your portfolio projects"
+                description="Manage your portfolio projects"
                 icon={<Briefcase className="h-6 w-6" />}
-                linkTo={() => navigate("/projects")}
+                linkTo={() => navigate("/admin/projects")}
               />
             </div>
           </TabsContent>
