@@ -1,4 +1,3 @@
-
 export interface Category {
   id: string;
   name: string;
@@ -22,6 +21,9 @@ export interface Project {
   modified_by: string;
   category?: Category;
   attachments?: Attachment[];
+  image_url?: string | null;
+  website_url?: string | null;
+  github_url?: string | null;
 }
 
 export interface Attachment {

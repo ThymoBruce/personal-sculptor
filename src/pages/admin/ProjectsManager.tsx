@@ -1,7 +1,14 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { ArrowLeft, Plus, Trash, Pencil, BookOpen } from "lucide-react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { ArrowLeft, Plus, Trash, Pencil, BookOpen, Link as LinkIcon, Image, Github } from "lucide-react";
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHead, 
+  TableHeader, 
+  TableRow 
+} from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -36,6 +43,9 @@ export default function ProjectsManager() {
     category_id: "",
     status: "draft" as "draft" | "published",
     tags: [] as string[],
+    image_url: "",
+    website_url: "",
+    github_url: "",
   });
 
   useEffect(() => {
@@ -103,6 +113,9 @@ export default function ProjectsManager() {
       category_id: categories.length > 0 ? categories[0].id : "",
       status: "draft",
       tags: [],
+      image_url: "",
+      website_url: "",
+      github_url: "",
     });
     setSelectedProject(null);
   };
@@ -140,6 +153,9 @@ export default function ProjectsManager() {
       category_id: project.category_id || (categories.length > 0 ? categories[0].id : ""),
       status: project.status,
       tags: project.tags || [],
+      image_url: project.image_url || "",
+      website_url: project.website_url || "",
+      github_url: project.github_url || "",
     });
     const tabTrigger = document.querySelector('[data-value="form"]');
     if (tabTrigger instanceof HTMLElement) {
@@ -267,6 +283,26 @@ export default function ProjectsManager() {
                         <TableCell>{new Date(project.created_at).toLocaleDateString()}</TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end space-x-2">
+                            {project.website_url && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => window.open(project.website_url, '_blank')}
+                                className="text-muted-foreground"
+                              >
+                                <LinkIcon size={16} />
+                              </Button>
+                            )}
+                            {project.github_url && (
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => window.open(project.github_url, '_blank')}
+                                className="text-muted-foreground"
+                              >
+                                <Github size={16} />
+                              </Button>
+                            )}
                             <Button
                               variant="ghost"
                               size="sm"
@@ -370,6 +406,39 @@ export default function ProjectsManager() {
                       />
                     </div>
                   </div>
+                
+                <div className="grid md:grid-cols-2 gap-6">
+                  <div>
+                    <Label htmlFor="image_url">Project Image URL</Label>
+                    <Input
+                      id="image_url"
+                      name="image_url"
+                      value={formData.image_url}
+                      onChange={handleInputChange}
+                      placeholder="Optional image URL for the project"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="website_url">Website URL</Label>
+                    <Input
+                      id="website_url"
+                      name="website_url"
+                      value={formData.website_url}
+                      onChange={handleInputChange}
+                      placeholder="Optional project website URL"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="github_url">GitHub URL</Label>
+                    <Input
+                      id="github_url"
+                      name="github_url"
+                      value={formData.github_url}
+                      onChange={handleInputChange}
+                      placeholder="Optional GitHub repository URL"
+                    />
+                  </div>
+                </div>
 
                   <div className="flex justify-end space-x-2">
                     <Button

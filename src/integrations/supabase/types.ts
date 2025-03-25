@@ -213,13 +213,16 @@ export type Database = {
           created_at: string
           created_by: string
           description: string
+          github_url: string | null
           id: string
+          image_url: string | null
           is_deleted: boolean
           modified_by: string
           name: string
           status: string
           tags: string[] | null
           updated_at: string
+          website_url: string | null
         }
         Insert: {
           author_id: string
@@ -227,13 +230,16 @@ export type Database = {
           created_at?: string
           created_by: string
           description: string
+          github_url?: string | null
           id?: string
+          image_url?: string | null
           is_deleted?: boolean
           modified_by: string
           name: string
           status?: string
           tags?: string[] | null
           updated_at?: string
+          website_url?: string | null
         }
         Update: {
           author_id?: string
@@ -241,13 +247,16 @@ export type Database = {
           created_at?: string
           created_by?: string
           description?: string
+          github_url?: string | null
           id?: string
+          image_url?: string | null
           is_deleted?: boolean
           modified_by?: string
           name?: string
           status?: string
           tags?: string[] | null
           updated_at?: string
+          website_url?: string | null
         }
         Relationships: [
           {
