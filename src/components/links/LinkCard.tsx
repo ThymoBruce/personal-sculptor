@@ -1,42 +1,34 @@
 
 import React from "react";
-import { Link as RouterLink } from "react-router-dom";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/Card";
+import { Link } from "@/lib/types";
 import { ExternalLink } from "lucide-react";
-import { Link as LinkType } from "@/lib/types";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 
 interface LinkCardProps {
-  link: LinkType;
+  link: Link;
 }
 
-export default function LinkCard({ link }: LinkCardProps) {
-  const isExternal = link.url.startsWith("http");
-
+const LinkCard: React.FC<LinkCardProps> = ({ link }) => {
   return (
-    <Card className="h-full">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-xl">{link.title}</CardTitle>
-        {link.description && <CardDescription>{link.description}</CardDescription>}
-      </CardHeader>
-      <CardContent>
-        {isExternal ? (
-          <a
-            href={link.url}
-            target="_blank"
+    <Card className="hover:shadow-md transition-shadow duration-300">
+      <CardHeader>
+        <CardTitle className="text-lg">
+          <a 
+            href={link.url} 
+            target="_blank" 
             rel="noopener noreferrer"
-            className="inline-flex items-center text-sm font-medium text-primary hover:underline"
+            className="flex items-center hover:text-primary transition-colors"
           >
-            Visit Link <ExternalLink size={14} className="ml-1" />
+            {link.title}
+            <ExternalLink size={18} className="ml-2" />
           </a>
-        ) : (
-          <RouterLink
-            to={link.url}
-            className="inline-flex items-center text-sm font-medium text-primary hover:underline"
-          >
-            Visit Page
-          </RouterLink>
+        </CardTitle>
+        {link.description && (
+          <CardDescription>{link.description}</CardDescription>
         )}
-      </CardContent>
+      </CardHeader>
     </Card>
   );
-}
+};
+
+export default LinkCard;

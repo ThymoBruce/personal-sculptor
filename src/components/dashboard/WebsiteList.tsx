@@ -1,4 +1,3 @@
-
 import React, { useState, Fragment } from "react";
 import { PlusCircle, ExternalLink, Pencil, Trash, AlertCircle } from "lucide-react";
 import { Link } from "@/lib/types";
@@ -16,6 +15,7 @@ export default function WebsiteList() {
   const { toast } = useToast();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedLink, setSelectedLink] = useState<Link | null>(null);
+  const [isEditing, setIsEditing] = useState(false);
   const queryClient = useQueryClient();
 
   const { data: links, isLoading, error } = useQuery({
@@ -74,12 +74,18 @@ export default function WebsiteList() {
   const handleEditLink = (link: Link) => {
     setSelectedLink(link);
     setIsDialogOpen(true);
+    setIsEditing(true);
   };
 
   const handleDeleteLink = async (id: string) => {
     if (window.confirm("Are you sure you want to delete this link?")) {
       deleteLinkMutation.mutate(id);
     }
+  };
+
+  const closeEditForm = () => {
+    setIsEditing(false);
+    setSelectedLink(null);
   };
 
   if (isLoading) {
@@ -126,10 +132,9 @@ export default function WebsiteList() {
             <DialogHeader>
               <DialogTitle>{selectedLink ? "Edit Link" : "Add New Link"}</DialogTitle>
             </DialogHeader>
-            <WebsiteForm
-              existingLink={selectedLink}
-              onClose={() => setIsDialogOpen(false)}
-            />
+            {isEditing && selectedLink && (
+              <WebsiteForm onClose={closeEditForm} initialData={selectedLink} />
+            )}
           </DialogContent>
         </Dialog>
       </div>
