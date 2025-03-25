@@ -304,6 +304,76 @@ export async function getCategories(): Promise<ApiResponse<Category[]>> {
   }
 }
 
+// Category Management
+export async function createCategory(category: Omit<Category, 'id' | 'created_at' | 'updated_at'>): Promise<ApiResponse<Category>> {
+  try {
+    const { data, error } = await supabase
+      .from('categories')
+      .insert([category])
+      .select()
+      .single();
+    
+    if (error) throw error;
+    
+    return { data };
+  } catch (error: any) {
+    return { 
+      error: { 
+        message: error.message || 'Failed to create category', 
+        status: error.status || 500 
+      } 
+    };
+  }
+}
+
+export async function updateCategory(id: string, category: Partial<Category>): Promise<ApiResponse<Category>> {
+  try {
+    // Add updated_at timestamp
+    const updatedCategory = {
+      ...category,
+      updated_at: new Date().toISOString()
+    };
+    
+    const { data, error } = await supabase
+      .from('categories')
+      .update(updatedCategory)
+      .eq('id', id)
+      .select()
+      .single();
+    
+    if (error) throw error;
+    
+    return { data };
+  } catch (error: any) {
+    return { 
+      error: { 
+        message: error.message || 'Failed to update category', 
+        status: error.status || 500 
+      } 
+    };
+  }
+}
+
+export async function deleteCategory(id: string): Promise<ApiResponse<null>> {
+  try {
+    const { error } = await supabase
+      .from('categories')
+      .delete()
+      .eq('id', id);
+    
+    if (error) throw error;
+    
+    return { data: null };
+  } catch (error: any) {
+    return { 
+      error: { 
+        message: error.message || 'Failed to delete category', 
+        status: error.status || 500 
+      } 
+    };
+  }
+}
+
 // Music Management
 export async function getSongs(): Promise<ApiResponse<Song[]>> {
   try {

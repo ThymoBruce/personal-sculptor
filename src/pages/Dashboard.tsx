@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Globe, FileText, CheckSquare, LayoutDashboard, Book, Briefcase } from "lucide-react";
+import { Globe, FileText, CheckSquare, LayoutDashboard, Book, Briefcase, Tag } from "lucide-react";
 import WebsiteList from "@/components/dashboard/WebsiteList";
 import DocumentManager from "@/components/dashboard/DocumentManager";
 import TodoList from "@/components/dashboard/TodoList";
@@ -44,7 +44,7 @@ export default function Dashboard() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-5 max-w-md mx-auto mb-8">
+          <TabsList className="grid w-full grid-cols-6 max-w-2xl mx-auto mb-8">
             <TabsTrigger value="dashboard" className="flex items-center gap-2">
               <LayoutDashboard size={16} />
               <span className="hidden sm:inline">Dashboard</span>
@@ -64,6 +64,10 @@ export default function Dashboard() {
             <TabsTrigger value="admin" className="flex items-center gap-2">
               <Briefcase size={16} />
               <span className="hidden sm:inline">Admin</span>
+            </TabsTrigger>
+            <TabsTrigger value="categories" className="flex items-center gap-2">
+              <Tag size={16} />
+              <span className="hidden sm:inline">Categories</span>
             </TabsTrigger>
           </TabsList>
 
@@ -86,6 +90,18 @@ export default function Dashboard() {
                 description="Manage your tasks and stay organized"
                 icon={<CheckSquare className="h-6 w-6" />}
                 linkTo={() => setActiveTab("todos")}
+              />
+              <DashboardCard 
+                title="Admin" 
+                description="Manage your content and settings"
+                icon={<Briefcase className="h-6 w-6" />}
+                linkTo={() => setActiveTab("admin")}
+              />
+              <DashboardCard 
+                title="Categories" 
+                description="Manage categories for projects and content"
+                icon={<Tag className="h-6 w-6" />}
+                linkTo={() => setActiveTab("categories")}
               />
             </div>
           </TabsContent>
@@ -121,7 +137,28 @@ export default function Dashboard() {
                     icon={<Book className="h-6 w-6" />}
                     href="/admin/blog"
                   />
+                  <AdminCard 
+                    title="Categories" 
+                    description="Manage categories for projects and content"
+                    icon={<Tag className="h-6 w-6" />}
+                    href="/admin/categories"
+                  />
                 </div>
+              </div>
+            </div>
+          </TabsContent>
+          
+          <TabsContent value="categories">
+            <div className="space-y-6">
+              <div className="bg-card border rounded-lg shadow-sm p-6">
+                <h2 className="text-2xl font-bold mb-4">Categories</h2>
+                <p className="text-muted-foreground mb-6">Manage categories for your projects and content</p>
+                
+                <Link to="/admin/categories">
+                  <Button className="w-full sm:w-auto">
+                    Go to Categories Manager
+                  </Button>
+                </Link>
               </div>
             </div>
           </TabsContent>
