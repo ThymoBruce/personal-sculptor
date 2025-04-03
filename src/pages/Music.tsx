@@ -21,6 +21,7 @@ type UnifiedTrack = {
   previewUrl: string | null;
   externalUrl?: string;
   type: 'local' | 'spotify';
+  trackId?: string; // Spotify track ID for full playback
   originalData: Song | SpotifyTrack;
 };
 
@@ -29,7 +30,7 @@ const MusicPage = () => {
   const audioRef = React.useRef<HTMLAudioElement | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [allTracks, setAllTracks] = useState<UnifiedTrack[]>([]);
-
+  
   // Query to fetch local songs
   const { data: songs, isLoading: loadingLocal } = useQuery({
     queryKey: ['songs'],
@@ -73,6 +74,7 @@ const MusicPage = () => {
       releaseDate: track.release_date,
       previewUrl: track.preview_url,
       externalUrl: track.spotify_url,
+      trackId: track.track_id, // Add trackId for Spotify Web SDK
       type: 'spotify',
       originalData: track
     }));
@@ -167,60 +169,76 @@ const MusicPage = () => {
       ) : (
         <div className="space-y-4">
           {filteredTracks.map((track) => (
-            <Card key={track.id} className="overflow-hidden">
-              <div className="flex items-stretch h-full">
-                <div className="aspect-square w-20 md:w-24 flex-shrink-0 relative">
-                  <img 
-                    src={track.coverImage || '/placeholder.svg'} 
-                    alt={track.title} 
-                    className="w-full h-full object-cover"
-                  />
-                  {track.previewUrl && (
-                    <button 
-                      onClick={() => togglePlayback(track.id, track.previewUrl)}
-                      className="absolute inset-0 flex items-center justify-center bg-black/30 transition-opacity hover:bg-black/50"
-                      aria-label={currentlyPlaying === track.id ? "Pause" : "Play"}
-                    >
-                      {currentlyPlaying === track.id ? (
-                        <PauseCircle size={36} className="text-white" />
-                      ) : (
-                        <PlayCircle size={36} className="text-white" />
-                      )}
-                    </button>
-                  )}
-                </div>
-                <CardContent className="p-3 md:p-4 flex flex-col justify-between flex-grow">
-                  <div>
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="font-bold text-base md:text-lg mb-1 pr-10">{track.title}</h3>
-                        <p className="text-muted-foreground text-sm">{track.artist}</p>
+            track.type === 'spotify' ? (
+              <SpotifyTrackItem
+                key={track.id}
+                id={track.id}
+                title={track.title}
+                artist={track.artist}
+                album={(track.originalData as SpotifyTrack).album_name || ""}
+                coverImage={track.coverImage}
+                previewUrl={track.previewUrl}
+                spotifyUrl={track.externalUrl || ""}
+                releaseDate={track.releaseDate}
+                duration={track.duration}
+                trackId={track.trackId}
+              />
+            ) : (
+              <Card key={track.id} className="overflow-hidden">
+                <div className="flex items-stretch h-full">
+                  <div className="aspect-square w-20 md:w-24 flex-shrink-0 relative">
+                    <img 
+                      src={track.coverImage || '/placeholder.svg'} 
+                      alt={track.title} 
+                      className="w-full h-full object-cover"
+                    />
+                    {track.previewUrl && (
+                      <button 
+                        onClick={() => togglePlayback(track.id, track.previewUrl)}
+                        className="absolute inset-0 flex items-center justify-center bg-black/30 transition-opacity hover:bg-black/50"
+                        aria-label={currentlyPlaying === track.id ? "Pause" : "Play"}
+                      >
+                        {currentlyPlaying === track.id ? (
+                          <PauseCircle size={36} className="text-white" />
+                        ) : (
+                          <PlayCircle size={36} className="text-white" />
+                        )}
+                      </button>
+                    )}
+                  </div>
+                  <CardContent className="p-3 md:p-4 flex flex-col justify-between flex-grow">
+                    <div>
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="font-bold text-base md:text-lg mb-1 pr-10">{track.title}</h3>
+                          <p className="text-muted-foreground text-sm">{track.artist}</p>
+                        </div>
+                        <Badge variant={track.type === 'local' ? 'default' : 'secondary'} className="ml-2 mt-1">
+                          {track.type === 'local' ? 'My Music' : 'Spotify'}
+                        </Badge>
                       </div>
-                      <Badge variant={track.type === 'local' ? 'default' : 'secondary'} className="ml-2 mt-1">
-                        {track.type === 'local' ? 'My Music' : 'Spotify'}
-                      </Badge>
                     </div>
-                  </div>
-                  <div className="mt-2 flex justify-between items-center text-xs text-muted-foreground">
-                    <span>{formatDuration(track.duration)}</span>
-                    <div className="flex items-center gap-2">
-                      <span>{new Date(track.releaseDate).toLocaleDateString()}</span>
-                      {track.externalUrl && (
-                        <a 
-                          href={track.externalUrl} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="text-muted-foreground hover:text-primary transition-colors"
-                          aria-label="Open in Spotify"
-                        >
-                          <ExternalLink size={14} />
-                        </a>
-                      )}
+                    <div className="mt-2 flex justify-between items-center text-xs text-muted-foreground">
+                      <span>{formatDuration(track.duration)}</span>
+                      <div className="flex items-center gap-2">
+                        <span>{new Date(track.releaseDate).toLocaleDateString()}</span>
+                        {track.externalUrl && (
+                          <a 
+                            href={track.externalUrl} 
+                            target="_blank" 
+                            rel="noopener noreferrer"
+                            className="text-muted-foreground hover:text-primary transition-colors"
+                            aria-label="Open in Spotify"
+                          >
+                            <ExternalLink size={14} />
+                          </a>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                </CardContent>
-              </div>
-            </Card>
+                  </CardContent>
+                </div>
+              </Card>
+            )
           ))}
         </div>
       )}

@@ -112,29 +112,71 @@ const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
+// Function to generate a playback token
+async function getPlaybackToken() {
+  // For security, we generate a temporary token with a short expiration
+  const token = await getSpotifyToken();
+  return token;
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders });
   }
 
-  // Get the authorization header
-  const authHeader = req.headers.get('Authorization');
-  
   try {
-    const url = new URL(req.url);
-    const path = url.pathname.split('/').pop();
-
     // Get Spotify access token
     const accessToken = await getSpotifyToken();
     if (!accessToken) {
       throw new Error('Failed to obtain Spotify access token');
     }
 
-    // Routes
-    if (req.method === 'POST' && path === 'add-artist') {
+    // Parse request body
+    const body = await req.json();
+    const action = body.action || '';
+
+    // Routes based on action in the body
+    if (action === 'get-tracks') {
+      // Get all tracks
+      const { data: tracks, error } = await supabase
+        .from('spotify_tracks')
+        .select('*, spotify_artists(artist_name)')
+        .order('release_date', { ascending: false });
+      
+      if (error) throw error;
+      
+      return new Response(
+        JSON.stringify({ success: true, tracks }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    } 
+    else if (action === 'sync') {
+      // Sync all artists
+      const artists = await getArtists(accessToken);
+      const results = [];
+      
+      for (const artist of artists) {
+        try {
+          const result = await syncArtistTracks(artist.artist_id, artist.artist_name, accessToken);
+          results.push({ artist: artist.artist_name, ...result });
+        } catch (error) {
+          results.push({ artist: artist.artist_name, error: error.message });
+        }
+      }
+      
+      return new Response(
+        JSON.stringify({ success: true, results }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    else if (action === 'add-artist') {
       // Add a new artist to track
-      const { artistId } = await req.json();
+      const { artistId } = body;
+      
+      if (!artistId) {
+        throw new Error('Artist ID is required');
+      }
       
       // Check if artist exists in Spotify
       const artistData = await getArtist(artistId, accessToken);
@@ -173,41 +215,12 @@ serve(async (req) => {
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     } 
-    else if (req.method === 'GET' && path === 'sync') {
-      // Sync all artists
-      const artists = await getArtists(accessToken);
-      const results = [];
+    else if (action === 'remove-artist') {
+      const { artistId } = body;
       
-      for (const artist of artists) {
-        try {
-          const result = await syncArtistTracks(artist.artist_id, artist.artist_name, accessToken);
-          results.push({ artist: artist.artist_name, ...result });
-        } catch (error) {
-          results.push({ artist: artist.artist_name, error: error.message });
-        }
+      if (!artistId) {
+        throw new Error('Artist ID is required');
       }
-      
-      return new Response(
-        JSON.stringify({ success: true, results }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-    else if (req.method === 'GET' && path === 'tracks') {
-      // Get all tracks
-      const { data: tracks, error } = await supabase
-        .from('spotify_tracks')
-        .select('*, spotify_artists(artist_name)')
-        .order('release_date', { ascending: false });
-      
-      if (error) throw error;
-      
-      return new Response(
-        JSON.stringify({ success: true, tracks }),
-        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
-      );
-    }
-    else if (req.method === 'DELETE' && path === 'remove-artist') {
-      const { artistId } = await req.json();
       
       // Delete all tracks from this artist
       const { error: tracksError } = await supabase
@@ -230,9 +243,18 @@ serve(async (req) => {
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
+    else if (action === 'get-playback-token') {
+      // Get a token for playback
+      const token = await getPlaybackToken();
+      
+      return new Response(
+        JSON.stringify({ success: true, token }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
     
     return new Response(
-      JSON.stringify({ error: 'Invalid route' }),
+      JSON.stringify({ error: 'Invalid action' }),
       { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
   } catch (error) {

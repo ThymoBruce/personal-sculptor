@@ -1,7 +1,9 @@
 
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Play, Pause, ExternalLink } from "lucide-react";
 import { formatDistanceToNow } from "date-fns";
+import { getSpotifyPlaybackToken } from "@/lib/api";
+import { useToast } from "@/hooks/use-toast";
 
 interface SpotifyTrackProps {
   id: string;
@@ -13,6 +15,7 @@ interface SpotifyTrackProps {
   spotifyUrl: string;
   releaseDate: string;
   duration: number;
+  trackId?: string; // Spotify track ID for full playback
 }
 
 export default function SpotifyTrack({
@@ -24,11 +27,18 @@ export default function SpotifyTrack({
   previewUrl,
   spotifyUrl,
   releaseDate,
-  duration
+  duration,
+  trackId
 }: SpotifyTrackProps) {
   const [isPlaying, setIsPlaying] = useState(false);
+  const [isFullPlayback, setIsFullPlayback] = useState(false);
+  const [spotifyToken, setSpotifyToken] = useState<string | null>(null);
+  const [spotifyPlayer, setSpotifyPlayer] = useState<any>(null);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const { toast } = useToast();
+  const playerContainerRef = useRef<HTMLDivElement | null>(null);
   
+  // Format helpers
   const formatDuration = (ms: number) => {
     const minutes = Math.floor(ms / 60000);
     const seconds = Math.floor((ms % 60000) / 1000);
@@ -43,8 +53,33 @@ export default function SpotifyTrack({
       return dateStr;
     }
   };
-  
-  const togglePlay = () => {
+
+  // Initialize Spotify Web Playback SDK
+  useEffect(() => {
+    if (!trackId) return;
+
+    // Load Spotify Web Playback SDK script
+    const script = document.createElement("script");
+    script.src = "https://sdk.scdn.co/spotify-player.js";
+    script.async = true;
+    document.body.appendChild(script);
+
+    // Initialize Spotify Player when script loads
+    window.onSpotifyWebPlaybackSDKReady = () => {
+      setIsFullPlayback(true);
+    };
+
+    // Clean up
+    return () => {
+      document.body.removeChild(script);
+      if (spotifyPlayer) {
+        spotifyPlayer.disconnect();
+      }
+    };
+  }, [trackId]);
+
+  // Handle Preview URL playback
+  const togglePreviewPlay = () => {
     if (!previewUrl) return;
     
     if (isPlaying) {
@@ -64,7 +99,8 @@ export default function SpotifyTrack({
     
     setIsPlaying(!isPlaying);
   };
-  
+
+  // Only show preview playback option
   return (
     <div className="flex gap-4 p-3 rounded-lg hover:bg-accent/10 transition-colors">
       <div className="relative flex-shrink-0 w-16 h-16 rounded-md overflow-hidden group">
@@ -75,7 +111,7 @@ export default function SpotifyTrack({
         />
         {previewUrl ? (
           <button 
-            onClick={togglePlay}
+            onClick={togglePreviewPlay}
             className="absolute inset-0 flex items-center justify-center bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity"
             aria-label={isPlaying ? "Pause" : "Play"}
           >
@@ -111,6 +147,9 @@ export default function SpotifyTrack({
           </div>
         </div>
       </div>
+      
+      {/* Hidden div to hold Spotify Web Playback SDK Player */}
+      <div ref={playerContainerRef} style={{ display: 'none' }}></div>
     </div>
   );
 }

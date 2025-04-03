@@ -219,12 +219,9 @@ export const isAdmin = async (): Promise<boolean> => {
 
 export async function getSpotifyTracks(): Promise<ApiResponse<SpotifyTrack[]>> {
   try {
-    // Get supabase URL using a public getter method
-    const { data: sessionData } = await supabase.auth.getSession();
-    
     // Use Edge Function to get tracks
     const { data, error } = await supabase.functions.invoke('spotify', {
-      path: 'tracks'
+      body: { action: 'get-tracks' }
     });
 
     if (error) throw error;
@@ -242,11 +239,8 @@ export async function getSpotifyTracks(): Promise<ApiResponse<SpotifyTrack[]>> {
 
 export async function syncSpotifyTracks(): Promise<ApiResponse<any>> {
   try {
-    // Get supabase URL using a public getter method
-    const { data: sessionData } = await supabase.auth.getSession();
-    
     const { data, error } = await supabase.functions.invoke('spotify', {
-      path: 'sync'
+      body: { action: 'sync' }
     });
     
     if (error) throw error;
@@ -264,12 +258,8 @@ export async function syncSpotifyTracks(): Promise<ApiResponse<any>> {
 
 export async function addSpotifyArtist(artistId: string): Promise<ApiResponse<any>> {
   try {
-    // Get supabase URL using a public getter method
-    const { data: sessionData } = await supabase.auth.getSession();
-    
     const { data, error } = await supabase.functions.invoke('spotify', {
-      path: 'add-artist',
-      body: { artistId }
+      body: { action: 'add-artist', artistId }
     });
     
     if (error) throw error;
@@ -287,13 +277,9 @@ export async function addSpotifyArtist(artistId: string): Promise<ApiResponse<an
 
 export async function removeSpotifyArtist(artistId: string): Promise<ApiResponse<any>> {
   try {
-    // Get supabase URL using a public getter method
-    const { data: sessionData } = await supabase.auth.getSession();
-    
     const { data, error } = await supabase.functions.invoke('spotify', {
-      path: 'remove-artist',
       method: 'DELETE',
-      body: { artistId }
+      body: { action: 'remove-artist', artistId }
     });
     
     if (error) throw error;
@@ -303,6 +289,25 @@ export async function removeSpotifyArtist(artistId: string): Promise<ApiResponse
     return { 
       error: { 
         message: error.message || 'Failed to remove artist',
+        status: error.status || 500
+      }
+    };
+  }
+}
+
+export async function getSpotifyPlaybackToken(): Promise<ApiResponse<string>> {
+  try {
+    const { data, error } = await supabase.functions.invoke('spotify', {
+      body: { action: 'get-playback-token' }
+    });
+    
+    if (error) throw error;
+    
+    return { data: data.token };
+  } catch (error: any) {
+    return { 
+      error: { 
+        message: error.message || 'Failed to get playback token',
         status: error.status || 500
       }
     };
