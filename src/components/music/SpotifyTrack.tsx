@@ -49,7 +49,7 @@ export default function SpotifyTrack({
 
   // Toggle play/pause for preview
   const togglePlayback = () => {
-    // Fallback to preview URL playback
+    // Check for preview URL 
     if (!previewUrl) {
       toast({
         title: "No Preview Available",
