@@ -1,4 +1,3 @@
-
 import { 
   ApiResponse, 
   Category, 
@@ -220,15 +219,17 @@ export const isAdmin = async (): Promise<boolean> => {
 
 export async function getSpotifyTracks(): Promise<ApiResponse<SpotifyTrack[]>> {
   try {
-    const { data, error } = await supabase
-      .from('spotify_tracks')
-      .select('*, spotify_artists(artist_name)')
-      .order('release_date', { ascending: false })
-      .limit(20);
+    // Get supabase URL using a public getter method
+    const { data: sessionData } = await supabase.auth.getSession();
+    
+    // Use Edge Function to get tracks
+    const { data, error } = await supabase.functions.invoke('spotify', {
+      path: 'tracks'
+    });
 
     if (error) throw error;
     
-    return { data: data as SpotifyTrack[] };
+    return { data: data.tracks as SpotifyTrack[] };
   } catch (error: any) {
     return { 
       error: { 
@@ -241,26 +242,15 @@ export async function getSpotifyTracks(): Promise<ApiResponse<SpotifyTrack[]>> {
 
 export async function syncSpotifyTracks(): Promise<ApiResponse<any>> {
   try {
+    // Get supabase URL using a public getter method
     const { data: sessionData } = await supabase.auth.getSession();
-    const accessToken = sessionData?.session?.access_token || '';
     
-    // Get Supabase URL from the supabase client
-    const supabaseUrl = supabase.supabaseUrl;
-    
-    const response = await fetch(`${supabaseUrl}/functions/v1/spotify/sync`, {
-      method: 'GET',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${accessToken}`
-      }
+    const { data, error } = await supabase.functions.invoke('spotify', {
+      path: 'sync'
     });
     
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to sync tracks');
-    }
+    if (error) throw error;
     
-    const data = await response.json();
     return { data };
   } catch (error: any) {
     return { 
@@ -274,27 +264,16 @@ export async function syncSpotifyTracks(): Promise<ApiResponse<any>> {
 
 export async function addSpotifyArtist(artistId: string): Promise<ApiResponse<any>> {
   try {
+    // Get supabase URL using a public getter method
     const { data: sessionData } = await supabase.auth.getSession();
-    const accessToken = sessionData?.session?.access_token || '';
     
-    // Get Supabase URL from the supabase client
-    const supabaseUrl = supabase.supabaseUrl;
-    
-    const response = await fetch(`${supabaseUrl}/functions/v1/spotify/add-artist`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${accessToken}`
-      },
-      body: JSON.stringify({ artistId })
+    const { data, error } = await supabase.functions.invoke('spotify', {
+      path: 'add-artist',
+      body: { artistId }
     });
     
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to add artist');
-    }
+    if (error) throw error;
     
-    const data = await response.json();
     return { data };
   } catch (error: any) {
     return { 
@@ -308,27 +287,17 @@ export async function addSpotifyArtist(artistId: string): Promise<ApiResponse<an
 
 export async function removeSpotifyArtist(artistId: string): Promise<ApiResponse<any>> {
   try {
+    // Get supabase URL using a public getter method
     const { data: sessionData } = await supabase.auth.getSession();
-    const accessToken = sessionData?.session?.access_token || '';
     
-    // Get Supabase URL from the supabase client
-    const supabaseUrl = supabase.supabaseUrl;
-    
-    const response = await fetch(`${supabaseUrl}/functions/v1/spotify/remove-artist`, {
+    const { data, error } = await supabase.functions.invoke('spotify', {
+      path: 'remove-artist',
       method: 'DELETE',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${accessToken}`
-      },
-      body: JSON.stringify({ artistId })
+      body: { artistId }
     });
     
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.error || 'Failed to remove artist');
-    }
+    if (error) throw error;
     
-    const data = await response.json();
     return { data };
   } catch (error: any) {
     return { 
