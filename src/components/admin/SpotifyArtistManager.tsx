@@ -178,33 +178,35 @@ export default function SpotifyArtistManager() {
         </form>
 
         {artists && artists.length > 0 ? (
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Artist Name</TableHead>
-                <TableHead>Artist ID</TableHead>
-                <TableHead className="text-right">Actions</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {artists.map((artist) => (
-                <TableRow key={artist.id}>
-                  <TableCell className="font-medium">{artist.artist_name}</TableCell>
-                  <TableCell>{artist.artist_id}</TableCell>
-                  <TableCell className="text-right">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleRemoveArtist(artist.artist_id)}
-                      className="text-destructive hover:text-destructive/90 hover:bg-destructive/10"
-                    >
-                      <Trash className="h-4 w-4" />
-                    </Button>
-                  </TableCell>
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Artist Name</TableHead>
+                  <TableHead>Artist ID</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
-              ))}
-            </TableBody>
-          </Table>
+              </TableHeader>
+              <TableBody>
+                {artists.map((artist) => (
+                  <TableRow key={artist.id}>
+                    <TableCell className="font-medium truncate max-w-[200px]">{artist.artist_name}</TableCell>
+                    <TableCell className="truncate max-w-[200px]">{artist.artist_id}</TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => handleRemoveArtist(artist.artist_id)}
+                        className="text-destructive hover:text-destructive/90 hover:bg-destructive/10"
+                      >
+                        <Trash className="h-4 w-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         ) : (
           <div className="text-center py-6 bg-muted/20 rounded-lg">
             <Music className="h-10 w-10 text-muted-foreground mx-auto mb-3" />
