@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { ArrowLeft, Plus, Trash, Pencil, Music, PlayCircle, PauseCircle } from "lucide-react";
@@ -6,12 +5,12 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getSongs, createSong, updateSong, deleteSong, uploadSongAudio, uploadSongCover } from "@/lib/api-supabase";
 import { Song } from "@/lib/types";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import SpotifyArtistManager from "@/components/admin/SpotifyArtistManager";
 
 export default function MusicManager() {
   const [songs, setSongs] = useState<Song[]>([]);
@@ -33,6 +32,8 @@ export default function MusicManager() {
     producer: "",
     duration: 0,
   });
+
+  const [activeTab, setActiveTab] = useState("local");
 
   useEffect(() => {
     if (!loading && !user) {
@@ -72,7 +73,6 @@ export default function MusicManager() {
       setAudioFile(file);
       setAudioPreview(URL.createObjectURL(file));
 
-      // Get audio duration
       const audio = new Audio();
       audio.src = URL.createObjectURL(file);
       audio.onloadedmetadata = () => {
@@ -143,21 +143,18 @@ export default function MusicManager() {
       let audio_url = selectedSong?.audio_url || "";
       let cover_image = selectedSong?.cover_image || "";
 
-      // Upload audio file if provided
       if (audioFile) {
         const audioResponse = await uploadSongAudio(audioFile);
         if (audioResponse.error) throw new Error(audioResponse.error.message);
         audio_url = audioResponse.data || "";
       }
 
-      // Upload cover image if provided
       if (coverFile) {
         const coverResponse = await uploadSongCover(coverFile);
         if (coverResponse.error) throw new Error(coverResponse.error.message);
         cover_image = coverResponse.data || "";
       }
 
-      // Validate required fields
       if (!formData.title || !formData.producer || !audio_url || !cover_image) {
         throw new Error("Please fill out all required fields");
       }
@@ -243,12 +240,245 @@ export default function MusicManager() {
           <h1 className="text-2xl font-bold">Manage Music</h1>
         </div>
 
-        <Tabs defaultValue="list" className="w-full">
+        <Tabs defaultValue={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList>
+            <TabsTrigger value="local">My Music</TabsTrigger>
             <TabsTrigger value="list">Music List</TabsTrigger>
             <TabsTrigger value="add">{selectedSong ? 'Edit Song' : 'Add New Song'}</TabsTrigger>
+            <TabsTrigger value="spotify">Spotify Integration</TabsTrigger>
           </TabsList>
 
+          <TabsContent value="local" className="mt-6">
+            <Tabs defaultValue="list">
+              <TabsList className="mb-6">
+                <TabsTrigger value="list">Music List</TabsTrigger>
+                <TabsTrigger value="add">{selectedSong ? 'Edit Song' : 'Add New Song'}</TabsTrigger>
+              </TabsList>
+              
+              <TabsContent value="list">
+                {isLoading ? (
+                  <div className="animate-pulse space-y-4">
+                    {[1, 2, 3].map((i) => (
+                      <div key={i} className="bg-secondary/50 p-4 rounded-lg">
+                        <div className="h-6 bg-secondary rounded w-1/4 mb-4"></div>
+                        <div className="h-4 bg-secondary rounded w-full mb-2"></div>
+                        <div className="h-4 bg-secondary rounded w-3/4"></div>
+                      </div>
+                    ))}
+                  </div>
+                ) : songs.length === 0 ? (
+                  <div className="text-center py-12 bg-secondary/30 rounded-lg">
+                    <Music size={40} className="mx-auto mb-4 text-muted-foreground" />
+                    <h3 className="text-lg font-medium mb-2">No songs yet</h3>
+                    <p className="text-muted-foreground mb-4">Start adding your music tracks</p>
+                    <Button onClick={() => {
+                      setActiveTab("add");
+                    }}>
+                      <Plus size={16} className="mr-2" />
+                      Add Your First Song
+                    </Button>
+                  </div>
+                ) : (
+                  <div className="overflow-x-auto">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-12"></TableHead>
+                          <TableHead>Title</TableHead>
+                          <TableHead>Producer</TableHead>
+                          <TableHead>Duration</TableHead>
+                          <TableHead>Release Date</TableHead>
+                          <TableHead className="text-right">Actions</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {songs.map((song) => (
+                          <TableRow key={song.id} className="hover:bg-secondary/20 transition-colors">
+                            <TableCell>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                onClick={() => togglePlayback(song.id, song.audio_url)}
+                                aria-label={currentlyPlaying === song.id ? "Pause" : "Play"}
+                              >
+                                {currentlyPlaying === song.id ? (
+                                  <PauseCircle size={20} />
+                                ) : (
+                                  <PlayCircle size={20} />
+                                )}
+                              </Button>
+                            </TableCell>
+                            <TableCell className="font-medium">{song.title}</TableCell>
+                            <TableCell>{song.producer}</TableCell>
+                            <TableCell>{formatDuration(song.duration)}</TableCell>
+                            <TableCell>
+                              {new Date(song.release_date).toLocaleDateString()}
+                            </TableCell>
+                            <TableCell className="text-right">
+                              <div className="flex justify-end space-x-2">
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => {
+                                    handleEditSong(song);
+                                    setActiveTab("add");
+                                  }}
+                                >
+                                  <Pencil size={16} />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => handleDeleteSong(song.id)}
+                                  className="text-destructive hover:text-destructive/80"
+                                >
+                                  <Trash size={16} />
+                                </Button>
+                              </div>
+                            </TableCell>
+                          </TableRow>
+                        ))}
+                      </TableBody>
+                    </Table>
+                  </div>
+                )}
+              </TabsContent>
+              
+              <TabsContent value="add">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>{selectedSong ? 'Edit Song' : 'Add New Song'}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <form onSubmit={handleSubmit} className="space-y-6">
+                      <div className="grid md:grid-cols-2 gap-6">
+                        <div className="space-y-4">
+                          <div>
+                            <label htmlFor="title" className="block text-sm font-medium mb-1">
+                              Title*
+                            </label>
+                            <Input
+                              id="title"
+                              name="title"
+                              value={formData.title}
+                              onChange={handleInputChange}
+                              placeholder="Song title"
+                              required
+                            />
+                          </div>
+
+                          <div>
+                            <label htmlFor="producer" className="block text-sm font-medium mb-1">
+                              Producer/Artist*
+                            </label>
+                            <Input
+                              id="producer"
+                              name="producer"
+                              value={formData.producer}
+                              onChange={handleInputChange}
+                              placeholder="Producer or artist name"
+                              required
+                            />
+                          </div>
+
+                          <div>
+                            <label htmlFor="duration" className="block text-sm font-medium mb-1">
+                              Duration (seconds)
+                            </label>
+                            <Input
+                              id="duration"
+                              name="duration"
+                              type="number"
+                              value={formData.duration}
+                              onChange={handleInputChange}
+                              placeholder="Duration in seconds"
+                              min="1"
+                              required
+                            />
+                            <p className="text-xs text-muted-foreground mt-1">
+                              {formatDuration(formData.duration)}
+                            </p>
+                          </div>
+                        </div>
+
+                        <div className="space-y-4">
+                          <div>
+                            <label htmlFor="audio" className="block text-sm font-medium mb-1">
+                              Audio File {!selectedSong && '*'}
+                            </label>
+                            <Input
+                              id="audio"
+                              type="file"
+                              accept="audio/*"
+                              onChange={handleAudioChange}
+                              className="mb-2"
+                              required={!selectedSong}
+                            />
+                            {audioPreview && (
+                              <div className="mt-2 p-3 bg-secondary/30 rounded-md">
+                                <audio 
+                                  controls 
+                                  src={audioPreview} 
+                                  className="w-full h-10" 
+                                />
+                              </div>
+                            )}
+                          </div>
+
+                          <div>
+                            <label htmlFor="cover" className="block text-sm font-medium mb-1">
+                              Cover Image {!selectedSong && '*'}
+                            </label>
+                            <Input
+                              id="cover"
+                              type="file"
+                              accept="image/*"
+                              onChange={handleCoverChange}
+                              className="mb-2"
+                              required={!selectedSong}
+                            />
+                            {coverPreview && (
+                              <div className="mt-2 aspect-square w-32 rounded-md overflow-hidden">
+                                <img
+                                  src={coverPreview}
+                                  alt="Cover preview"
+                                  className="w-full h-full object-cover"
+                                />
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
+                      <div className="flex justify-end space-x-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          onClick={resetForm}
+                          disabled={isSubmitting}
+                        >
+                          Cancel
+                        </Button>
+                        <Button type="submit" disabled={isSubmitting}>
+                          {isSubmitting ? (
+                            <>
+                              <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+                              Saving...
+                            </>
+                          ) : selectedSong ? (
+                            'Update Song'
+                          ) : (
+                            'Add Song'
+                          )}
+                        </Button>
+                      </div>
+                    </form>
+                  </CardContent>
+                </Card>
+              </TabsContent>
+            </Tabs>
+          </TabsContent>
+          
           <TabsContent value="list" className="mt-6">
             {isLoading ? (
               <div className="animate-pulse space-y-4">
@@ -475,6 +705,10 @@ export default function MusicManager() {
                 </form>
               </CardContent>
             </Card>
+          </TabsContent>
+          
+          <TabsContent value="spotify" className="mt-6">
+            <SpotifyArtistManager />
           </TabsContent>
         </Tabs>
       </div>

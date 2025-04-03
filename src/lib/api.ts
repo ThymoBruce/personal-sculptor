@@ -1,4 +1,3 @@
-
 import { 
   ApiResponse, 
   Category, 
@@ -213,5 +212,109 @@ export const isAdmin = async (): Promise<boolean> => {
     return profile?.role === 'admin';
   } catch (error) {
     return false;
+  }
+}
+
+export async function getSpotifyTracks(): Promise<ApiResponse<any[]>> {
+  try {
+    const { data, error } = await supabase
+      .from('spotify_tracks')
+      .select('*, spotify_artists(artist_name)')
+      .order('release_date', { ascending: false })
+      .limit(20);
+
+    if (error) throw error;
+    
+    return { data };
+  } catch (error: any) {
+    return { 
+      error: { 
+        message: error.message || 'Failed to fetch Spotify tracks',
+        status: error.status || 500
+      }
+    };
+  }
+}
+
+export async function syncSpotifyTracks(): Promise<ApiResponse<any>> {
+  try {
+    const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/spotify/sync`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${supabase.auth.getSession()?.data?.session?.access_token || ''}`
+      }
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to sync tracks');
+    }
+    
+    const data = await response.json();
+    return { data };
+  } catch (error: any) {
+    return { 
+      error: { 
+        message: error.message || 'Failed to sync tracks',
+        status: error.status || 500
+      }
+    };
+  }
+}
+
+export async function addSpotifyArtist(artistId: string): Promise<ApiResponse<any>> {
+  try {
+    const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/spotify/add-artist`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${supabase.auth.getSession()?.data?.session?.access_token || ''}`
+      },
+      body: JSON.stringify({ artistId })
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to add artist');
+    }
+    
+    const data = await response.json();
+    return { data };
+  } catch (error: any) {
+    return { 
+      error: { 
+        message: error.message || 'Failed to add artist',
+        status: error.status || 500
+      }
+    };
+  }
+}
+
+export async function removeSpotifyArtist(artistId: string): Promise<ApiResponse<any>> {
+  try {
+    const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/spotify/remove-artist`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${supabase.auth.getSession()?.data?.session?.access_token || ''}`
+      },
+      body: JSON.stringify({ artistId })
+    });
+    
+    if (!response.ok) {
+      const errorData = await response.json();
+      throw new Error(errorData.error || 'Failed to remove artist');
+    }
+    
+    const data = await response.json();
+    return { data };
+  } catch (error: any) {
+    return { 
+      error: { 
+        message: error.message || 'Failed to remove artist',
+        status: error.status || 500
+      }
+    };
   }
 }

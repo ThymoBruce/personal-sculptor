@@ -1,1 +1,5 @@
-project_id = "atptbcdwtfbbboimgzur"
+
+project_id = "atptbcdwtfbbboimgzur" 
+
+[functions.spotify]
+verify_jwt = false

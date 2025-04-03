@@ -325,6 +325,83 @@ export type Database = {
         }
         Relationships: []
       }
+      spotify_artists: {
+        Row: {
+          artist_id: string
+          artist_name: string
+          created_at: string
+          id: string
+          updated_at: string
+        }
+        Insert: {
+          artist_id: string
+          artist_name: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Update: {
+          artist_id?: string
+          artist_name?: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      spotify_tracks: {
+        Row: {
+          album_name: string
+          artist_id: string
+          cover_image_url: string
+          created_at: string
+          duration_ms: number
+          id: string
+          preview_url: string | null
+          release_date: string
+          spotify_url: string
+          title: string
+          track_id: string
+          updated_at: string
+        }
+        Insert: {
+          album_name: string
+          artist_id: string
+          cover_image_url: string
+          created_at?: string
+          duration_ms: number
+          id?: string
+          preview_url?: string | null
+          release_date: string
+          spotify_url: string
+          title: string
+          track_id: string
+          updated_at?: string
+        }
+        Update: {
+          album_name?: string
+          artist_id?: string
+          cover_image_url?: string
+          created_at?: string
+          duration_ms?: number
+          id?: string
+          preview_url?: string | null
+          release_date?: string
+          spotify_url?: string
+          title?: string
+          track_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "spotify_tracks_artist_id_fkey"
+            columns: ["artist_id"]
+            isOneToOne: false
+            referencedRelation: "spotify_artists"
+            referencedColumns: ["artist_id"]
+          },
+        ]
+      }
       todos: {
         Row: {
           completed: boolean
