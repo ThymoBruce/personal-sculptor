@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getSongs, deleteSong } from "@/lib/api-supabase";
@@ -19,7 +18,6 @@ export default function MusicManager() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
-  // Fetch songs
   const { data: songs, isLoading, error } = useQuery({
     queryKey: ['songs'],
     queryFn: async () => {
@@ -29,7 +27,6 @@ export default function MusicManager() {
     }
   });
 
-  // Delete song mutation
   const deleteMutation = useMutation({
     mutationFn: (id: string) => deleteSong(id),
     onSuccess: () => {
@@ -64,7 +61,6 @@ export default function MusicManager() {
     queryClient.invalidateQueries({ queryKey: ['songs'] });
   };
 
-  // Render different view based on state
   const renderContent = () => {
     if (selectedSong) {
       return (
@@ -204,26 +200,18 @@ export default function MusicManager() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <Card>
-        <CardHeader>
-          <CardTitle>Music Management</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="songs" className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-6">
-              <TabsTrigger value="songs">Your Songs</TabsTrigger>
-              <TabsTrigger value="spotify">Spotify Artists</TabsTrigger>
-            </TabsList>
-            <TabsContent value="songs" className="space-y-6">
-              {renderContent()}
-            </TabsContent>
-            <TabsContent value="spotify" className="space-y-6">
-              <SpotifyArtistManager />
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
+      <Tabs defaultValue="songs" className="w-full">
+        <TabsList className="mb-6">
+          <TabsTrigger value="songs">Your Songs</TabsTrigger>
+          <TabsTrigger value="spotify">Spotify Artists</TabsTrigger>
+        </TabsList>
+        <TabsContent value="songs" className="space-y-6">
+          {renderContent()}
+        </TabsContent>
+        <TabsContent value="spotify" className="space-y-6">
+          <SpotifyArtistManager />
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
-
