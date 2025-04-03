@@ -1,14 +1,3 @@
-import { 
-  ApiResponse, 
-  Category, 
-  Project, 
-  Link, 
-  Attachment,
-  Song,
-  BlogPost,
-  SpotifyTrack,
-  SpotifyArtist
-} from './types';
 import { supabase } from "@/integrations/supabase/client";
 
 // Categories API
@@ -219,9 +208,8 @@ export const isAdmin = async (): Promise<boolean> => {
 
 export async function getSpotifyTracks(): Promise<ApiResponse<SpotifyTrack[]>> {
   try {
-    // Use Edge Function to get tracks
     const { data, error } = await supabase.functions.invoke('spotify', {
-      body: { action: 'get-tracks' }
+      body: JSON.stringify({ action: 'get-tracks' })
     });
 
     if (error) throw error;
@@ -240,7 +228,7 @@ export async function getSpotifyTracks(): Promise<ApiResponse<SpotifyTrack[]>> {
 export async function syncSpotifyTracks(): Promise<ApiResponse<any>> {
   try {
     const { data, error } = await supabase.functions.invoke('spotify', {
-      body: { action: 'sync' }
+      body: JSON.stringify({ action: 'sync' })
     });
     
     if (error) throw error;
@@ -259,7 +247,10 @@ export async function syncSpotifyTracks(): Promise<ApiResponse<any>> {
 export async function addSpotifyArtist(artistId: string): Promise<ApiResponse<any>> {
   try {
     const { data, error } = await supabase.functions.invoke('spotify', {
-      body: { action: 'add-artist', artistId }
+      body: JSON.stringify({ 
+        action: 'add-artist', 
+        artistId 
+      })
     });
     
     if (error) throw error;
@@ -278,8 +269,11 @@ export async function addSpotifyArtist(artistId: string): Promise<ApiResponse<an
 export async function removeSpotifyArtist(artistId: string): Promise<ApiResponse<any>> {
   try {
     const { data, error } = await supabase.functions.invoke('spotify', {
-      method: 'DELETE',
-      body: { action: 'remove-artist', artistId }
+      method: 'POST',
+      body: JSON.stringify({ 
+        action: 'remove-artist', 
+        artistId 
+      })
     });
     
     if (error) throw error;
@@ -298,7 +292,7 @@ export async function removeSpotifyArtist(artistId: string): Promise<ApiResponse
 export async function getSpotifyPlaybackToken(): Promise<ApiResponse<string>> {
   try {
     const { data, error } = await supabase.functions.invoke('spotify', {
-      body: { action: 'get-playback-token' }
+      body: JSON.stringify({ action: 'get-playback-token' })
     });
     
     if (error) throw error;
