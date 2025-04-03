@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getSongs, deleteSong } from "@/lib/api-supabase";
@@ -203,18 +204,26 @@ export default function MusicManager() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <Tabs defaultValue="songs" className="w-full">
-        <TabsList className="mb-6">
-          <TabsTrigger value="songs">Your Songs</TabsTrigger>
-          <TabsTrigger value="spotify">Spotify Artists</TabsTrigger>
-        </TabsList>
-        <TabsContent value="songs" className="space-y-6">
-          {renderContent()}
-        </TabsContent>
-        <TabsContent value="spotify" className="space-y-6">
-          <SpotifyArtistManager />
-        </TabsContent>
-      </Tabs>
+      <Card>
+        <CardHeader>
+          <CardTitle>Music Management</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Tabs defaultValue="songs" className="w-full">
+            <TabsList className="grid w-full grid-cols-2 mb-6">
+              <TabsTrigger value="songs">Your Songs</TabsTrigger>
+              <TabsTrigger value="spotify">Spotify Artists</TabsTrigger>
+            </TabsList>
+            <TabsContent value="songs" className="space-y-6">
+              {renderContent()}
+            </TabsContent>
+            <TabsContent value="spotify" className="space-y-6">
+              <SpotifyArtistManager />
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
     </div>
   );
 }
+
