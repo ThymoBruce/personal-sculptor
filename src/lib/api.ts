@@ -29,7 +29,6 @@ export const getProjects = async (): Promise<ApiResponse<Project[]>> => {
     
     if (error) throw error;
     
-    // Process the data to match our types
     const typedData = data?.map(project => {
       return {
         ...project,
@@ -302,6 +301,62 @@ export async function getSpotifyPlaybackToken(): Promise<ApiResponse<string>> {
     return { 
       error: { 
         message: error.message || 'Failed to get playback token',
+        status: error.status || 500
+      }
+    };
+  }
+}
+
+export async function exchangeSpotifyCode(code: string): Promise<ApiResponse<SpotifyTokens>> {
+  try {
+    const { data, error } = await supabase.functions.invoke('spotify', {
+      body: JSON.stringify({ 
+        action: 'exchange-token',
+        code
+      })
+    });
+    
+    if (error) throw error;
+    
+    return { 
+      data: {
+        accessToken: data.access_token,
+        refreshToken: data.refresh_token,
+        expiresIn: data.expires_in
+      } 
+    };
+  } catch (error: any) {
+    return { 
+      error: { 
+        message: error.message || 'Failed to exchange Spotify code',
+        status: error.status || 500
+      }
+    };
+  }
+}
+
+export async function refreshSpotifyToken(refreshToken: string): Promise<ApiResponse<SpotifyTokens>> {
+  try {
+    const { data, error } = await supabase.functions.invoke('spotify', {
+      body: JSON.stringify({ 
+        action: 'refresh-token',
+        refresh_token: refreshToken
+      })
+    });
+    
+    if (error) throw error;
+    
+    return { 
+      data: {
+        accessToken: data.access_token,
+        refreshToken: data.refresh_token || refreshToken,
+        expiresIn: data.expires_in
+      } 
+    };
+  } catch (error: any) {
+    return { 
+      error: { 
+        message: error.message || 'Failed to refresh Spotify token',
         status: error.status || 500
       }
     };

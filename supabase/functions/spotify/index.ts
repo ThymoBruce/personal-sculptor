@@ -4,13 +4,14 @@ import "https://deno.land/x/xhr@0.1.0/mod.ts";
 
 const SPOTIFY_CLIENT_ID = Deno.env.get('SPOTIFY_CLIENT_ID');
 const SPOTIFY_CLIENT_SECRET = Deno.env.get('SPOTIFY_CLIENT_SECRET');
+const REDIRECT_URI = Deno.env.get('SPOTIFY_REDIRECT_URI') || '';
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-// Helper to get Spotify access token
+// Helper to get Spotify access token (client credentials flow)
 async function getSpotifyToken() {
   const response = await fetch('https://accounts.spotify.com/api/token', {
     method: 'POST',
@@ -25,6 +26,67 @@ async function getSpotifyToken() {
 
   const data = await response.json();
   return data.access_token;
+}
+
+// Helper to exchange auth code for tokens (authorization code flow)
+async function exchangeCodeForToken(code: string) {
+  try {
+    console.log("Exchanging code for token with redirect URI:", REDIRECT_URI);
+    
+    const response = await fetch('https://accounts.spotify.com/api/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': `Basic ${btoa(`${SPOTIFY_CLIENT_ID}:${SPOTIFY_CLIENT_SECRET}`)}`
+      },
+      body: new URLSearchParams({
+        'grant_type': 'authorization_code',
+        'code': code,
+        'redirect_uri': REDIRECT_URI
+      })
+    });
+
+    const data = await response.json();
+    console.log("Token exchange response status:", response.status);
+    
+    if (!response.ok) {
+      console.error("Error exchanging code for token:", data);
+      throw new Error(data.error_description || 'Failed to exchange code');
+    }
+    
+    return data;
+  } catch (error) {
+    console.error("Exception in exchangeCodeForToken:", error);
+    throw error;
+  }
+}
+
+// Helper to refresh an access token
+async function refreshAccessToken(refreshToken: string) {
+  try {
+    const response = await fetch('https://accounts.spotify.com/api/token', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': `Basic ${btoa(`${SPOTIFY_CLIENT_ID}:${SPOTIFY_CLIENT_SECRET}`)}`
+      },
+      body: new URLSearchParams({
+        'grant_type': 'refresh_token',
+        'refresh_token': refreshToken
+      })
+    });
+
+    const data = await response.json();
+    
+    if (!response.ok) {
+      throw new Error(data.error_description || 'Failed to refresh token');
+    }
+    
+    return data;
+  } catch (error) {
+    console.error("Error refreshing token:", error);
+    throw error;
+  }
 }
 
 // Get artist tracks
@@ -112,13 +174,6 @@ const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || '';
 
 const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-// Function to generate a playback token
-async function getPlaybackToken() {
-  // For security, we generate a temporary token with a short expiration
-  const token = await getSpotifyToken();
-  return token;
-}
-
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -126,18 +181,18 @@ serve(async (req) => {
   }
 
   try {
-    // Get Spotify access token
-    const accessToken = await getSpotifyToken();
-    if (!accessToken) {
-      throw new Error('Failed to obtain Spotify access token');
-    }
-
     // Parse request body
     const body = await req.json();
     const action = body.action || '';
 
     // Routes based on action in the body
     if (action === 'get-tracks') {
+      // Get Spotify access token
+      const accessToken = await getSpotifyToken();
+      if (!accessToken) {
+        throw new Error('Failed to obtain Spotify access token');
+      }
+      
       // Get all tracks
       const { data: tracks, error } = await supabase
         .from('spotify_tracks')
@@ -152,6 +207,12 @@ serve(async (req) => {
       );
     } 
     else if (action === 'sync') {
+      // Get Spotify access token
+      const accessToken = await getSpotifyToken();
+      if (!accessToken) {
+        throw new Error('Failed to obtain Spotify access token');
+      }
+      
       // Sync all artists
       const artists = await getArtists(accessToken);
       const results = [];
@@ -171,6 +232,12 @@ serve(async (req) => {
       );
     }
     else if (action === 'add-artist') {
+      // Get Spotify access token
+      const accessToken = await getSpotifyToken();
+      if (!accessToken) {
+        throw new Error('Failed to obtain Spotify access token');
+      }
+      
       // Add a new artist to track
       const { artistId } = body;
       
@@ -244,11 +311,57 @@ serve(async (req) => {
       );
     }
     else if (action === 'get-playback-token') {
-      // Get a token for playback
-      const token = await getPlaybackToken();
+      // Get a token for playback using client credentials flow
+      const token = await getSpotifyToken();
       
       return new Response(
         JSON.stringify({ success: true, token }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    else if (action === 'exchange-token') {
+      // Exchange authorization code for access and refresh tokens
+      const { code } = body;
+      
+      if (!code) {
+        return new Response(
+          JSON.stringify({ error: 'Authorization code is required' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
+      const tokenData = await exchangeCodeForToken(code);
+      
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          access_token: tokenData.access_token,
+          refresh_token: tokenData.refresh_token,
+          expires_in: tokenData.expires_in
+        }),
+        { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+    else if (action === 'refresh-token') {
+      // Refresh an expired access token
+      const { refresh_token } = body;
+      
+      if (!refresh_token) {
+        return new Response(
+          JSON.stringify({ error: 'Refresh token is required' }),
+          { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+        );
+      }
+      
+      const tokenData = await refreshAccessToken(refresh_token);
+      
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          access_token: tokenData.access_token,
+          expires_in: tokenData.expires_in,
+          refresh_token: tokenData.refresh_token || refresh_token
+        }),
         { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }

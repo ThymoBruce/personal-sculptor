@@ -1,120 +1,73 @@
+export interface ApiResponse<T> {
+  data?: T;
+  error?: {
+    message: string;
+    status: number;
+  };
+}
+
 export interface Category {
   id: string;
   name: string;
-  description: string | null;
-  created_at: string;
-  updated_at: string;
+  slug: string;
+  description: string;
+  created_at?: string;
 }
 
 export interface Project {
   id: string;
-  name: string;
+  created_at?: string;
+  title: string;
+  slug: string;
   description: string;
-  category_id: string;
-  tags: string[];
-  is_deleted: boolean;
+  content: string;
   status: 'draft' | 'published';
-  author_id: string;
-  created_at: string;
-  updated_at: string;
-  created_by: string;
-  modified_by: string;
+  category_id: string;
   category?: Category;
+  cover_image: string;
+  is_featured: boolean;
+  is_deleted: boolean;
   attachments?: Attachment[];
-  image_url?: string | null;
-  website_url?: string | null;
-  github_url?: string | null;
-}
-
-export interface Attachment {
-  id: string;
-  project_id: string;
-  file_url: string;
-  file_name: string;
-  file_size: number;
 }
 
 export interface Link {
   id: string;
+  created_at?: string;
   title: string;
   url: string;
-  description: string | null;
   display_order: number;
   is_active: boolean;
 }
 
-export interface Document {
-  id: string;
-  name: string;
-  file_url: string;
-  file_size: number;
-  file_type: string;
-  user_id: string;
-  created_at: string;
-}
-
-export interface Todo {
-  id: string;
-  title: string;
-  completed: boolean;
-  priority: string;
-  user_id: string;
-  created_at: string;
-}
-
 export interface Song {
   id: string;
+  created_at?: string;
   title: string;
   producer: string;
-  cover_image: string;
   audio_url: string;
+  cover_image: string;
   release_date: string;
-  duration: number; // in seconds
-  created_at: string;
-  updated_at: string;
+  duration: number;
 }
 
 export interface BlogPost {
   id: string;
+  created_at?: string;
   title: string;
   slug: string;
   content: string;
-  excerpt: string;
-  cover_image: string | null;
   published_date: string;
-  tags: string[];
   is_published: boolean;
-  created_at: string;
-  updated_at: string;
-  author_id: string;
+  cover_image: string;
+  excerpt: string;
 }
 
-export interface Profile {
+export interface Attachment {
   id: string;
-  first_name: string | null;
-  last_name: string | null;
-  avatar_url: string | null;
-  role: string;
-  created_at: string;
-  updated_at: string;
-}
-
-export interface ApiError {
-  message: string;
-  status: number;
-}
-
-export interface ApiResponse<T> {
-  data?: T;
-  error?: ApiError;
-}
-
-export interface SpotifyArtist {
-  id: string;
-  artist_id: string;
-  artist_name: string;
-  created_at: string;
-  updated_at: string;
+  created_at?: string;
+  name: string;
+  url: string;
+  project_id: string;
 }
 
 export interface SpotifyTrack {
@@ -128,9 +81,21 @@ export interface SpotifyTrack {
   cover_image_url: string;
   preview_url: string | null;
   spotify_url: string;
-  created_at: string;
-  updated_at: string;
   spotify_artists?: {
     artist_name: string;
   };
+}
+
+export interface SpotifyArtist {
+  id: string;
+  artist_id: string;
+  artist_name: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SpotifyTokens {
+  accessToken: string;
+  refreshToken: string;
+  expiresIn: number;
 }
