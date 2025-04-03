@@ -1,3 +1,4 @@
+
 export interface ApiResponse<T> {
   data?: T;
   error?: {
@@ -48,6 +49,7 @@ export interface Song {
   cover_image: string;
   release_date: string;
   duration: number;
+  streaming_url?: string;
 }
 
 export interface BlogPost {

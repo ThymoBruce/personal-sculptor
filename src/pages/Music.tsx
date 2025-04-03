@@ -2,15 +2,13 @@
 import React, { useEffect, useState } from 'react';
 import { getSongs, getSpotifyTracks } from "@/lib/api";
 import { Song, SpotifyTrack } from "@/lib/types";
-import { Music, PlayCircle, PauseCircle, ExternalLink, LogIn } from "lucide-react";
+import { Music, PlayCircle, PauseCircle, ExternalLink } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { useQuery } from "@tanstack/react-query";
 import SpotifyTrackItem from "@/components/music/SpotifyTrack";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { useSpotifyAuth } from "@/hooks/use-spotify-auth";
 
 // Create a unified type for both local and Spotify tracks
 type UnifiedTrack = {
@@ -23,7 +21,6 @@ type UnifiedTrack = {
   previewUrl: string | null;
   externalUrl?: string;
   type: 'local' | 'spotify';
-  trackId?: string; // Spotify track ID for full playback
   originalData: Song | SpotifyTrack;
 };
 
@@ -32,7 +29,6 @@ const MusicPage = () => {
   const audioRef = React.useRef<HTMLAudioElement | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [allTracks, setAllTracks] = useState<UnifiedTrack[]>([]);
-  const { isAuthenticated, isLoading: authLoading, login, logout } = useSpotifyAuth();
   
   // Query to fetch local songs
   const { data: songs, isLoading: loadingLocal } = useQuery({
@@ -64,6 +60,7 @@ const MusicPage = () => {
       duration: song.duration * 1000, // Convert seconds to ms for consistency
       releaseDate: song.release_date,
       previewUrl: song.audio_url,
+      externalUrl: song.streaming_url,
       type: 'local',
       originalData: song
     }));
@@ -77,7 +74,6 @@ const MusicPage = () => {
       releaseDate: track.release_date,
       previewUrl: track.preview_url,
       externalUrl: track.spotify_url,
-      trackId: track.track_id, // Add trackId for Spotify Web SDK
       type: 'spotify',
       originalData: track
     }));
@@ -138,11 +134,8 @@ const MusicPage = () => {
       )
     : allTracks;
   
-  const isLoading = loadingLocal || loadingSpotify || authLoading;
+  const isLoading = loadingLocal || loadingSpotify;
   const hasTracks = filteredTracks.length > 0;
-  
-  const spotifyTracks = filteredTracks.filter(track => track.type === 'spotify');
-  const hasSpotifyTracks = spotifyTracks.length > 0;
 
   return (
     <div className="container mx-auto px-4 py-8 pt-24">
@@ -151,24 +144,7 @@ const MusicPage = () => {
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-8">
         <p className="text-gray-600 max-w-2xl">
           Check out my latest music releases and favorite tracks from Spotify.
-          {hasSpotifyTracks && !isAuthenticated && " Connect with Spotify for full track playback."}
         </p>
-        
-        {hasSpotifyTracks && (
-          <div className="flex-shrink-0">
-            {isAuthenticated ? (
-              <Button variant="outline" onClick={logout} className="flex items-center gap-2">
-                <ExternalLink size={16} />
-                Disconnect Spotify
-              </Button>
-            ) : (
-              <Button onClick={login} className="flex items-center gap-2 bg-[#1DB954] hover:bg-[#1DB954]/90 text-white">
-                <LogIn size={16} />
-                Connect Spotify
-              </Button>
-            )}
-          </div>
-        )}
       </div>
       
       <div className="mb-6">
@@ -179,15 +155,6 @@ const MusicPage = () => {
           className="max-w-md"
         />
       </div>
-      
-      {isAuthenticated && (
-        <div className="mb-6 p-3 bg-primary/5 rounded-lg border border-primary/20">
-          <p className="text-sm text-primary flex items-center gap-2">
-            <Music size={16} />
-            Connected to Spotify. You can now play full tracks with Spotify Connect.
-          </p>
-        </div>
-      )}
       
       {isLoading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -216,7 +183,6 @@ const MusicPage = () => {
                 spotifyUrl={track.externalUrl || ""}
                 releaseDate={track.releaseDate}
                 duration={track.duration}
-                trackId={track.trackId}
               />
             ) : (
               <Card key={track.id} className="overflow-hidden">
@@ -263,9 +229,10 @@ const MusicPage = () => {
                             target="_blank" 
                             rel="noopener noreferrer"
                             className="text-muted-foreground hover:text-primary transition-colors"
-                            aria-label="Open in Spotify"
+                            aria-label="Open on streaming platform"
+                            title="Listen on streaming platform"
                           >
-                            <ExternalLink size={14} />
+                            <ExternalLink size={16} />
                           </a>
                         )}
                       </div>

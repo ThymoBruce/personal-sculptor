@@ -31,6 +31,7 @@ export default function MusicManager() {
     title: "",
     producer: "",
     duration: 0,
+    streaming_url: ""
   });
 
   const [activeTab, setActiveTab] = useState("local");
@@ -94,6 +95,7 @@ export default function MusicManager() {
       title: "",
       producer: "",
       duration: 0,
+      streaming_url: ""
     });
     setAudioFile(null);
     setCoverFile(null);
@@ -108,6 +110,7 @@ export default function MusicManager() {
       title: song.title,
       producer: song.producer,
       duration: song.duration,
+      streaming_url: song.streaming_url || ""
     });
     setAudioPreview(song.audio_url);
     setCoverPreview(song.cover_image);
@@ -166,6 +169,7 @@ export default function MusicManager() {
         cover_image,
         duration: formData.duration,
         release_date: new Date().toISOString(),
+        streaming_url: formData.streaming_url
       };
 
       let response;
@@ -399,6 +403,22 @@ export default function MusicManager() {
                               {formatDuration(formData.duration)}
                             </p>
                           </div>
+                          
+                          <div>
+                            <label htmlFor="streaming_url" className="block text-sm font-medium mb-1">
+                              Streaming Platform URL
+                            </label>
+                            <Input
+                              id="streaming_url"
+                              name="streaming_url"
+                              value={formData.streaming_url}
+                              onChange={handleInputChange}
+                              placeholder="https://open.spotify.com/track/..."
+                            />
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Link to the song on Spotify, Apple Music, etc.
+                            </p>
+                          </div>
                         </div>
 
                         <div className="space-y-4">
@@ -627,6 +647,22 @@ export default function MusicManager() {
                         />
                         <p className="text-xs text-muted-foreground mt-1">
                           {formatDuration(formData.duration)}
+                        </p>
+                      </div>
+                      
+                      <div>
+                        <label htmlFor="streaming_url" className="block text-sm font-medium mb-1">
+                          Streaming Platform URL
+                        </label>
+                        <Input
+                          id="streaming_url"
+                          name="streaming_url"
+                          value={formData.streaming_url}
+                          onChange={handleInputChange}
+                          placeholder="https://open.spotify.com/track/..."
+                        />
+                        <p className="text-xs text-muted-foreground mt-1">
+                          Link to the song on Spotify, Apple Music, etc.
                         </p>
                       </div>
                     </div>
