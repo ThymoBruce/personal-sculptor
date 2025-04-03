@@ -126,11 +126,11 @@ export default function MusicManager() {
                     />
                   </div>
                   <CardContent className="flex-grow p-4">
-                    <div className="flex justify-between">
+                    <div className="flex flex-col sm:flex-row sm:justify-between">
                       <div>
                         <h4 className="font-bold">{song.title}</h4>
                         <p className="text-sm text-muted-foreground">{song.producer}</p>
-                        <div className="flex items-center mt-1 space-x-4 text-xs text-muted-foreground">
+                        <div className="flex flex-wrap items-center mt-1 gap-x-4 gap-y-1 text-xs text-muted-foreground">
                           <span>{formatDuration(song.duration)}</span>
                           <span>{formatDistanceToNow(new Date(song.release_date), { addSuffix: true })}</span>
                           {song.streaming_url && (
@@ -145,7 +145,7 @@ export default function MusicManager() {
                           )}
                         </div>
                       </div>
-                      <div className="flex space-x-2">
+                      <div className="flex space-x-2 mt-2 sm:mt-0">
                         <Button 
                           variant="ghost" 
                           size="sm" 

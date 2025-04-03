@@ -100,7 +100,7 @@ export default function SpotifyTrack({
       <div className="flex-grow min-w-0">
         <h3 className="font-semibold text-foreground truncate">{title}</h3>
         <p className="text-sm text-muted-foreground truncate">{artist}</p>
-        <div className="flex items-center justify-between mt-1">
+        <div className="flex items-center justify-between mt-1 flex-wrap gap-y-1">
           <span className="text-xs text-muted-foreground">{formatReleaseDate(releaseDate)}</span>
           <div className="flex items-center gap-2">
             <span className="text-xs text-muted-foreground">{formatDuration(duration)}</span>
