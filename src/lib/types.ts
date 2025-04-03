@@ -108,3 +108,29 @@ export interface ApiResponse<T> {
   data?: T;
   error?: ApiError;
 }
+
+export interface SpotifyArtist {
+  id: string;
+  artist_id: string;
+  artist_name: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SpotifyTrack {
+  id: string;
+  track_id: string;
+  artist_id: string;
+  title: string;
+  album_name: string;
+  release_date: string;
+  duration_ms: number;
+  cover_image_url: string;
+  preview_url: string | null;
+  spotify_url: string;
+  created_at: string;
+  updated_at: string;
+  spotify_artists?: {
+    artist_name: string;
+  };
+}

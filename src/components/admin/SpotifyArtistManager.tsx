@@ -9,6 +9,7 @@ import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from "@
 import { RefreshCw, Trash, Music, Plus, AlertCircle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { SpotifyArtist } from "@/lib/types";
 
 export default function SpotifyArtistManager() {
   const [artistId, setArtistId] = useState("");
@@ -20,13 +21,14 @@ export default function SpotifyArtistManager() {
   const { data: artists, isLoading, error } = useQuery({
     queryKey: ["spotify-artists"],
     queryFn: async () => {
+      // Use type casting for now
       const { data, error } = await supabase
-        .from("spotify_artists")
-        .select("*")
-        .order("artist_name");
+        .from('spotify_artists')
+        .select('*')
+        .order('artist_name') as any;
       
       if (error) throw error;
-      return data;
+      return data as SpotifyArtist[];
     }
   });
 

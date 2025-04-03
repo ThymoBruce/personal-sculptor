@@ -5,7 +5,9 @@ import {
   Link, 
   Attachment,
   Song,
-  BlogPost
+  BlogPost,
+  SpotifyTrack,
+  SpotifyArtist
 } from './types';
 import { supabase } from "@/integrations/supabase/client";
 
@@ -200,13 +202,13 @@ export const isAuthenticated = (): boolean => {
 // Helper to check if user is admin
 export const isAdmin = async (): Promise<boolean> => {
   try {
-    const { data } = await supabase.auth.getSession();
-    if (!data.session) return false;
+    const session = await supabase.auth.getSession();
+    if (!session.data.session) return false;
     
     const { data: profile } = await supabase
       .from('profiles')
       .select('role')
-      .eq('id', data.session.user.id)
+      .eq('id', session.data.session.user.id)
       .single();
     
     return profile?.role === 'admin';
@@ -215,7 +217,7 @@ export const isAdmin = async (): Promise<boolean> => {
   }
 }
 
-export async function getSpotifyTracks(): Promise<ApiResponse<any[]>> {
+export async function getSpotifyTracks(): Promise<ApiResponse<SpotifyTrack[]>> {
   try {
     const { data, error } = await supabase
       .from('spotify_tracks')
@@ -225,7 +227,7 @@ export async function getSpotifyTracks(): Promise<ApiResponse<any[]>> {
 
     if (error) throw error;
     
-    return { data };
+    return { data: data as SpotifyTrack[] };
   } catch (error: any) {
     return { 
       error: { 
@@ -238,11 +240,14 @@ export async function getSpotifyTracks(): Promise<ApiResponse<any[]>> {
 
 export async function syncSpotifyTracks(): Promise<ApiResponse<any>> {
   try {
+    const session = await supabase.auth.getSession();
+    const accessToken = session.data?.session?.access_token || '';
+    
     const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/spotify/sync`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${supabase.auth.getSession()?.data?.session?.access_token || ''}`
+        'Authorization': `Bearer ${accessToken}`
       }
     });
     
@@ -265,11 +270,14 @@ export async function syncSpotifyTracks(): Promise<ApiResponse<any>> {
 
 export async function addSpotifyArtist(artistId: string): Promise<ApiResponse<any>> {
   try {
+    const session = await supabase.auth.getSession();
+    const accessToken = session.data?.session?.access_token || '';
+    
     const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/spotify/add-artist`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${supabase.auth.getSession()?.data?.session?.access_token || ''}`
+        'Authorization': `Bearer ${accessToken}`
       },
       body: JSON.stringify({ artistId })
     });
@@ -293,11 +301,14 @@ export async function addSpotifyArtist(artistId: string): Promise<ApiResponse<an
 
 export async function removeSpotifyArtist(artistId: string): Promise<ApiResponse<any>> {
   try {
+    const session = await supabase.auth.getSession();
+    const accessToken = session.data?.session?.access_token || '';
+    
     const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/spotify/remove-artist`, {
       method: 'DELETE',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${supabase.auth.getSession()?.data?.session?.access_token || ''}`
+        'Authorization': `Bearer ${accessToken}`
       },
       body: JSON.stringify({ artistId })
     });

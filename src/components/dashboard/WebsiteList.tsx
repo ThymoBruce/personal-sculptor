@@ -18,6 +18,7 @@ export default function WebsiteList() {
   const [isEditing, setIsEditing] = useState(false);
   const queryClient = useQueryClient();
 
+  // Query to fetch links
   const { data: links, isLoading, error } = useQuery({
     queryKey: ['links'],
     queryFn: async () => {
@@ -133,9 +134,9 @@ export default function WebsiteList() {
               <DialogTitle>{selectedLink ? "Edit Link" : "Add New Link"}</DialogTitle>
             </DialogHeader>
             {isEditing && selectedLink ? (
-              <WebsiteForm closeForm={closeEditForm} initialData={selectedLink} />
+              <WebsiteForm onClose={closeEditForm} initialData={selectedLink} />
             ) : (
-              <WebsiteForm closeForm={() => setIsDialogOpen(false)} />
+              <WebsiteForm onClose={() => setIsDialogOpen(false)} />
             )}
           </DialogContent>
         </Dialog>
