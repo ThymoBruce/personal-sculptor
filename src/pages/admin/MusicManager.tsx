@@ -1,3 +1,4 @@
+
 import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getSongs, deleteSong } from "@/lib/api-supabase";
@@ -61,7 +62,7 @@ export default function MusicManager() {
     queryClient.invalidateQueries({ queryKey: ['songs'] });
   };
 
-  const renderContent = () => {
+  const renderSongsContent = () => {
     if (selectedSong) {
       return (
         <div>
@@ -101,117 +102,117 @@ export default function MusicManager() {
           </Button>
         </div>
 
-        {isLoading ? (
-          <div className="flex justify-center py-10">
-            <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
-          </div>
-        ) : error ? (
-          <div className="text-center py-10 text-destructive">
-            <p>Error loading songs: {error instanceof Error ? error.message : "Unknown error"}</p>
-          </div>
-        ) : songs && songs.length > 0 ? (
-          <div className="grid grid-cols-1 gap-4">
-            {songs.map((song) => (
-              <Card key={song.id} className="overflow-hidden">
-                <div className="flex">
-                  <div className="w-20 h-20 flex-shrink-0">
-                    <img 
-                      src={song.cover_image} 
-                      alt={song.title}
-                      className="w-full h-full object-cover" 
-                    />
-                  </div>
-                  <CardContent className="flex-grow p-4">
-                    <div className="flex flex-col sm:flex-row sm:justify-between">
-                      <div>
-                        <h4 className="font-bold">{song.title}</h4>
-                        <p className="text-sm text-muted-foreground">{song.producer}</p>
-                        <div className="flex flex-wrap items-center mt-1 gap-x-4 gap-y-1 text-xs text-muted-foreground">
-                          <span>{formatDuration(song.duration)}</span>
-                          <span>{formatDistanceToNow(new Date(song.release_date), { addSuffix: true })}</span>
-                          {song.streaming_url && (
-                            <a 
-                              href={song.streaming_url} 
-                              target="_blank" 
-                              rel="noopener noreferrer"
-                              className="text-primary hover:underline flex items-center"
-                            >
-                              <ExternalLink size={12} className="mr-1" /> Streaming Link
-                            </a>
-                          )}
-                        </div>
+        <Tabs defaultValue="songs" className="w-full">
+          <TabsList>
+            <TabsTrigger value="songs">Songs</TabsTrigger>
+            <TabsTrigger value="spotify">Spotify</TabsTrigger>
+          </TabsList>
+          <TabsContent value="songs" className="pt-4">
+            {isLoading ? (
+              <div className="flex justify-center py-10">
+                <div className="animate-spin h-8 w-8 border-4 border-primary border-t-transparent rounded-full"></div>
+              </div>
+            ) : error ? (
+              <div className="text-center py-10 text-destructive">
+                <p>Error loading songs: {error instanceof Error ? error.message : "Unknown error"}</p>
+              </div>
+            ) : songs && songs.length > 0 ? (
+              <div className="grid grid-cols-1 gap-4">
+                {songs.map((song) => (
+                  <Card key={song.id} className="overflow-hidden">
+                    <div className="flex">
+                      <div className="w-20 h-20 flex-shrink-0">
+                        <img 
+                          src={song.cover_image} 
+                          alt={song.title}
+                          className="w-full h-full object-cover" 
+                        />
                       </div>
-                      <div className="flex space-x-2 mt-2 sm:mt-0">
-                        <Button 
-                          variant="ghost" 
-                          size="sm" 
-                          onClick={() => setSelectedSong(song)}
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
+                      <CardContent className="flex-grow p-4">
+                        <div className="flex flex-col sm:flex-row sm:justify-between">
+                          <div>
+                            <h4 className="font-bold">{song.title}</h4>
+                            <p className="text-sm text-muted-foreground">{song.producer}</p>
+                            <div className="flex flex-wrap items-center mt-1 gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                              <span>{formatDuration(song.duration)}</span>
+                              <span>{formatDistanceToNow(new Date(song.release_date), { addSuffix: true })}</span>
+                              {song.streaming_url && (
+                                <a 
+                                  href={song.streaming_url} 
+                                  target="_blank" 
+                                  rel="noopener noreferrer"
+                                  className="text-primary hover:underline flex items-center"
+                                >
+                                  <ExternalLink size={12} className="mr-1" /> Streaming Link
+                                </a>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex space-x-2 mt-2 sm:mt-0">
                             <Button 
                               variant="ghost" 
-                              size="sm"
-                              className="text-destructive hover:text-destructive/90 hover:bg-destructive/10"
+                              size="sm" 
+                              onClick={() => setSelectedSong(song)}
                             >
-                              <Trash className="h-4 w-4" />
+                              <Pencil className="h-4 w-4" />
                             </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Delete Song</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                Are you sure you want to delete "{song.title}"? This action cannot be undone.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction 
-                                onClick={() => handleDeleteSong(song.id)}
-                                className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                              >
-                                Delete
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      </div>
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm"
+                                  className="text-destructive hover:text-destructive/90 hover:bg-destructive/10"
+                                >
+                                  <Trash className="h-4 w-4" />
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Delete Song</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Are you sure you want to delete "{song.title}"? This action cannot be undone.
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction 
+                                    onClick={() => handleDeleteSong(song.id)}
+                                    className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                                  >
+                                    Delete
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          </div>
+                        </div>
+                      </CardContent>
                     </div>
-                  </CardContent>
-                </div>
-              </Card>
-            ))}
-          </div>
-        ) : (
-          <div className="text-center py-10 bg-muted/20 rounded-lg">
-            <Music className="h-10 w-10 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-medium mb-2">No Songs Added Yet</h3>
-            <p className="text-muted-foreground mb-4">Add your first song to showcase your music</p>
-            <Button onClick={() => setIsAddingSong(true)}>
-              <Plus className="h-4 w-4 mr-2" /> Add Your First Song
-            </Button>
-          </div>
-        )}
+                  </Card>
+                ))}
+              </div>
+            ) : (
+              <div className="text-center py-10 bg-muted/20 rounded-lg">
+                <Music className="h-10 w-10 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-medium mb-2">No Songs Added Yet</h3>
+                <p className="text-muted-foreground mb-4">Add your first song to showcase your music</p>
+                <Button onClick={() => setIsAddingSong(true)}>
+                  <Plus className="h-4 w-4 mr-2" /> Add Your First Song
+                </Button>
+              </div>
+            )}
+          </TabsContent>
+          <TabsContent value="spotify" className="pt-4">
+            <SpotifyArtistManager />
+          </TabsContent>
+        </Tabs>
       </div>
     );
   };
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <Tabs defaultValue="songs" className="w-full">
-        <TabsList className="mb-6">
-          <TabsTrigger value="songs">Your Songs</TabsTrigger>
-          <TabsTrigger value="spotify">Spotify Artists</TabsTrigger>
-        </TabsList>
-        <TabsContent value="songs" className="space-y-6">
-          {renderContent()}
-        </TabsContent>
-        <TabsContent value="spotify" className="space-y-6">
-          <SpotifyArtistManager />
-        </TabsContent>
-      </Tabs>
+      {renderSongsContent()}
     </div>
   );
 }
