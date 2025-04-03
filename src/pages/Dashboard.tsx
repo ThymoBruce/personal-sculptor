@@ -3,8 +3,9 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Globe, FileText, CheckSquare, LayoutDashboard, Book, Briefcase, Tag, Music } from "lucide-react";
+import { Globe, FileText, LayoutDashboard, Book, Briefcase, Tag, Music } from "lucide-react";
 import WebsiteList from "@/components/dashboard/WebsiteList";
+import DocumentManager from "@/components/dashboard/DocumentManager";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
@@ -42,7 +43,7 @@ export default function Dashboard() {
         </div>
 
         <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-2 max-w-3xl mx-auto mb-8">
+          <TabsList className="grid w-full grid-cols-3 max-w-3xl mx-auto mb-8">
             <TabsTrigger value="dashboard" className="flex items-center gap-2">
               <LayoutDashboard size={16} />
               <span className="hidden sm:inline">Dashboard</span>
@@ -50,6 +51,10 @@ export default function Dashboard() {
             <TabsTrigger value="websites" className="flex items-center gap-2">
               <Globe size={16} />
               <span className="hidden sm:inline">Websites</span>
+            </TabsTrigger>
+            <TabsTrigger value="documents" className="flex items-center gap-2">
+              <FileText size={16} />
+              <span className="hidden sm:inline">Documents</span>
             </TabsTrigger>
           </TabsList>
 
@@ -65,13 +70,7 @@ export default function Dashboard() {
                 title="Documents" 
                 description="Upload and manage your documents"
                 icon={<FileText className="h-6 w-6" />}
-                linkTo={() => navigate("/admin/documents")}
-              />
-              <DashboardCard 
-                title="To-Do List" 
-                description="Manage your tasks and stay organized"
-                icon={<CheckSquare className="h-6 w-6" />}
-                linkTo={() => navigate("/admin/todos")}
+                linkTo={() => setActiveTab("documents")}
               />
               <DashboardCard 
                 title="Categories" 
@@ -102,6 +101,10 @@ export default function Dashboard() {
           
           <TabsContent value="websites">
             <WebsiteList />
+          </TabsContent>
+          
+          <TabsContent value="documents">
+            <DocumentManager />
           </TabsContent>
         </Tabs>
       </div>

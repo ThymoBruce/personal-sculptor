@@ -53,6 +53,7 @@ const App = () => (
                 <Route path="/admin/music" element={<MusicManager />} />
                 <Route path="/admin/blog" element={<BlogManager />} />
                 <Route path="/admin/categories" element={<CategoriesManager />} />
+                <Route path="/admin/documents" element={<Dashboard />} />
                 <Route path="/auth/login" element={<Login />} />
                 <Route path="/auth/register" element={<Register />} />
                 <Route path="*" element={<NotFound />} />
