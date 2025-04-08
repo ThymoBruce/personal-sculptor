@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { ArrowLeft, Plus, Trash, Pencil, BookOpen, Link as LinkIcon, Image, Github } from "lucide-react";
+import { ArrowLeft, Plus, Trash, Pencil, BookOpen, Link as LinkIcon, Image as ImageIcon, Upload, Trash2, Github } from "lucide-react";
 import { 
   Table, 
   TableBody, 
@@ -26,6 +26,7 @@ import {
 import { Project, Category } from "@/lib/types";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function ProjectsManager() {
   const [projects, setProjects] = useState<Project[]>([]);
@@ -47,6 +48,9 @@ export default function ProjectsManager() {
     website_url: "",
     github_url: "",
   });
+
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading && !user) {
@@ -106,7 +110,84 @@ export default function ProjectsManager() {
     setFormData((prev) => ({ ...prev, tags: value.split(",").map(tag => tag.trim()) }));
   };
 
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    
+    const fileType = file.type.split('/')[0];
+    if (fileType !== 'image') {
+      toast({
+        title: "Invalid file type",
+        description: "Please upload an image file (JPEG, PNG, etc.)",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    if (file.size > 5 * 1024 * 1024) {
+      toast({
+        title: "File too large",
+        description: "Image size should not exceed 5MB",
+        variant: "destructive",
+      });
+      return;
+    }
+    
+    setUploadingImage(true);
+    
+    try {
+      const objectUrl = URL.createObjectURL(file);
+      setPreviewUrl(objectUrl);
+      
+      const fileName = `${Date.now()}-${file.name.replace(/\s+/g, '-')}`;
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from('project-images')
+        .upload(fileName, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+        
+      if (uploadError) throw uploadError;
+      
+      const { data: urlData } = supabase.storage
+        .from('project-images')
+        .getPublicUrl(uploadData.path);
+        
+      setFormData(prev => ({ ...prev, image_url: urlData.publicUrl }));
+      
+      toast({
+        title: "Image uploaded",
+        description: "Your image has been uploaded successfully",
+      });
+    } catch (error) {
+      console.error("Upload error:", error);
+      toast({
+        title: "Upload failed",
+        description: error instanceof Error ? error.message : "Failed to upload image",
+        variant: "destructive",
+      });
+      if (previewUrl) {
+        URL.revokeObjectURL(previewUrl);
+        setPreviewUrl(null);
+      }
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
+  const handleRemoveImage = () => {
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(null);
+    }
+    setFormData(prev => ({ ...prev, image_url: "" }));
+  };
+
   const resetForm = () => {
+    if (previewUrl) {
+      URL.revokeObjectURL(previewUrl);
+      setPreviewUrl(null);
+    }
     setFormData({
       name: "",
       description: "",
@@ -147,6 +228,9 @@ export default function ProjectsManager() {
 
   const handleEditClick = (project: Project) => {
     setSelectedProject(project);
+    if (project.image_url) {
+      setPreviewUrl(project.image_url);
+    }
     setFormData({
       name: project.name,
       description: project.description,
@@ -208,6 +292,62 @@ export default function ProjectsManager() {
       setIsSubmitting(false);
     }
   };
+
+  const renderImageUploadField = () => (
+    <div className="md:col-span-2">
+      <Label>Project Image</Label>
+      <div className="mt-2 border rounded-lg p-4 relative">
+        {formData.image_url || previewUrl ? (
+          <div className="relative">
+            <img 
+              src={previewUrl || formData.image_url} 
+              alt="Project preview" 
+              className="max-h-60 rounded-md mx-auto"
+            />
+            <Button
+              type="button"
+              variant="destructive"
+              size="icon"
+              className="absolute top-2 right-2 h-8 w-8 rounded-full"
+              onClick={handleRemoveImage}
+            >
+              <Trash2 size={16} />
+            </Button>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center justify-center py-6">
+            <ImageIcon className="h-12 w-12 text-muted-foreground mb-2" />
+            <div className="text-sm text-muted-foreground mb-4">
+              Upload a project image (max 5MB)
+            </div>
+            <label htmlFor="image-upload">
+              <div className="px-4 py-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-md cursor-pointer flex items-center">
+                {uploadingImage ? (
+                  <>
+                    <div className="h-4 w-4 border-2 border-current border-t-transparent rounded-full animate-spin mr-2" />
+                    Uploading...
+                  </>
+                ) : (
+                  <>
+                    <Upload size={16} className="mr-2" />
+                    Upload Image
+                  </>
+                )}
+              </div>
+              <input
+                id="image-upload"
+                type="file"
+                accept="image/*"
+                className="hidden"
+                onChange={handleImageUpload}
+                disabled={uploadingImage}
+              />
+            </label>
+          </div>
+        )}
+      </div>
+    </div>
+  );
 
   if (loading) {
     return (
@@ -405,40 +545,31 @@ export default function ProjectsManager() {
                         rows={4}
                       />
                     </div>
+                    
+                    {renderImageUploadField()}
+                  
+                    <div>
+                      <Label htmlFor="website_url">Website URL</Label>
+                      <Input
+                        id="website_url"
+                        name="website_url"
+                        value={formData.website_url}
+                        onChange={handleInputChange}
+                        placeholder="Optional project website URL"
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="github_url">GitHub URL</Label>
+                      <Input
+                        id="github_url"
+                        name="github_url"
+                        value={formData.github_url}
+                        onChange={handleInputChange}
+                        placeholder="Optional GitHub repository URL"
+                      />
+                    </div>
                   </div>
-                
-                <div className="grid md:grid-cols-2 gap-6">
-                  <div>
-                    <Label htmlFor="image_url">Project Image URL</Label>
-                    <Input
-                      id="image_url"
-                      name="image_url"
-                      value={formData.image_url}
-                      onChange={handleInputChange}
-                      placeholder="Optional image URL for the project"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="website_url">Website URL</Label>
-                    <Input
-                      id="website_url"
-                      name="website_url"
-                      value={formData.website_url}
-                      onChange={handleInputChange}
-                      placeholder="Optional project website URL"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="github_url">GitHub URL</Label>
-                    <Input
-                      id="github_url"
-                      name="github_url"
-                      value={formData.github_url}
-                      onChange={handleInputChange}
-                      placeholder="Optional GitHub repository URL"
-                    />
-                  </div>
-                </div>
 
                   <div className="flex justify-end space-x-2">
                     <Button

@@ -1,4 +1,3 @@
-
 export interface ApiResponse<T> {
   data?: T;
   error?: {
@@ -18,15 +17,17 @@ export interface Category {
 export interface Project {
   id: string;
   created_at?: string;
-  title: string;
-  slug: string;
+  name: string;
+  slug?: string;
   description: string;
-  content: string;
+  content?: string;
   status: 'draft' | 'published';
   category_id: string;
   category?: Category;
-  cover_image: string;
-  is_featured: boolean;
+  image_url?: string;
+  website_url?: string;
+  github_url?: string;
+  tags?: string[];
   is_deleted: boolean;
   attachments?: Attachment[];
 }
