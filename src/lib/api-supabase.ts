@@ -462,7 +462,7 @@ export async function deleteBlogPost(id: string): Promise<ApiResponse<null>> {
 export async function uploadBlogCover(file: File): Promise<ApiResponse<string>> {
   try {
     const fileName = `cover-${Date.now()}.${file.name.split('.').pop()}`;
-    const filePath = `blog/${fileName}`;
+    const filePath = `blog-images/${fileName}`;
     
     const { error: uploadError } = await supabase.storage
       .from('public')
