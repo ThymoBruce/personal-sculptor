@@ -25,7 +25,10 @@ export const getProjects = async (): Promise<ApiResponse<Project[]>> => {
   try {
     const { data, error } = await supabase
       .from('projects')
-      .select('*, categories(*)');
+      .select('*, categories(*)')
+      .eq('is_deleted', false)
+      .order('created_at', { ascending: false })
+    ;
     
     if (error) throw error;
     
