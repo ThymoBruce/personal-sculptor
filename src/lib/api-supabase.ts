@@ -473,7 +473,7 @@ export async function uploadBlogCover(file: File): Promise<ApiResponse<string>> 
     if (uploadError) throw uploadError;
     
     const { data } = supabase.storage
-      .from('public')
+      .from('blog-images')
       .getPublicUrl(filePath);
     
     return { data: data.publicUrl };
